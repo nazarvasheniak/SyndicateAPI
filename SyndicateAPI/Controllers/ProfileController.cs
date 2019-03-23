@@ -54,6 +54,31 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> GetVehicles()
         {
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var vehicles = VehicleService.GetAll().Where(x => x.Owner == user).Select(x => new VehicleViewModel(x)).ToList();
+
+            return Ok(new DataResponse<List<VehicleViewModel>>
+            {
+                Data = vehicles
+            });
+        }
+
+        [HttpGet("{id}/vehicles")]
+        public async Task<IActionResult> GetVehicles(long id)
+        {
+            var user = UserService.Get(id);
+            if (user == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            var vehicles = VehicleService.GetAll().Where(x => x.Owner == user).Select(x => new VehicleViewModel(x)).ToList();
+
+            return Ok(new DataResponse<List<VehicleViewModel>>
+            {
+                Data = vehicles
+            });
         }
 
         [HttpGet("{id}")]
