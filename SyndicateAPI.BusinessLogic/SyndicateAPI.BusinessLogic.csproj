@@ -11,6 +11,13 @@
   <ItemGroup>
     <ProjectReference Include="..\SyndicateAPI.Domain\SyndicateAPI.Domain.csproj" />
     <ProjectReference Include="..\SyndicateAPI.Storage\SyndicateAPI.Storage.csproj" />
+    <ProjectReference Include="..\SyndicateAPI.Utils\SyndicateAPI.Utils.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.IdentityModel.Tokens">
+      <HintPath>..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.identitymodel.tokens\5.3.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
