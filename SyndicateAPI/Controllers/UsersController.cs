@@ -17,15 +17,18 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         private IUserService UserService { get; set; }
         private IPersonService PersonService { get; set; }
         private ICityService CityService { get; set; }
+        private IEmailService EmailService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
             IPersonService personService,
-            ICityService cityService)
+            ICityService cityService,
+            IEmailService emailService)
         {
             UserService = userService;
             PersonService = personService;
             CityService = cityService;
+            EmailService = emailService;
         }
 
         [HttpPost("reg")]
@@ -80,12 +83,44 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                 Nickname = request.Nickname,
                 RegTime = DateTime.UtcNow,
                 PointsCount = 0,
-                Person = person
+                Person = person,
+                IsActive = false,
+                ActivationCode = RandomNumber()
             };
 
             UserService.Create(user);
 
-            return Ok(new ResponseModel());
+            await EmailService.SendActivationMessage(user.Login, user.ActivationCode);
+
+            return Ok(new RegistrationResponse
+            {
+                UserID = user.ID
+            });
+        }
+
+        [HttpPost("activation")]
+        public async Task<IActionResult> Activation([FromBody] ActivationRequest request)
+        {
+            var user = UserService.Get(request.UserID);
+            if (user == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            if (!request.Code.Equals(user.ActivationCode))
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Activation code invalid"
+                });
+
+            user.IsActive = true;
+            user.ActivationTime = DateTime.UtcNow;
+            UserService.Update(user);
+
+            return Ok();
         }
 
         [HttpPost("auth")]
@@ -96,6 +131,12 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                 return Json(new ResponseModel { Success = false, Message = "Wrong username or password" });
 
             return Json(new AuthorizationResponse { Token = authToken });
+        }
+
+        private int RandomNumber()
+        {
+            Random random = new Random();
+            return random.Next(1000, 9999);
         }
     }
 }

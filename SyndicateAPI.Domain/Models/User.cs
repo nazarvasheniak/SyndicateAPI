@@ -16,6 +16,8 @@ namespace SyndicateAPI.Domain.Models
         public virtual Person Person { get; set; }
         public virtual Group Group { get; set; }
         public virtual int ActivationCode { get; set; }
+        public virtual DateTime ActivationTime { get; set; }
+        public virtual bool IsActive { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }
