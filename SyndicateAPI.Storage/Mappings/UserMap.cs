@@ -20,6 +20,7 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.Nickname, "nickname");
             Map(u => u.PointsCount, "points_coint");
             Map(u => u.RegTime, "reg_time");
+            Map(u => u.ActivationCode, "activation_code");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
