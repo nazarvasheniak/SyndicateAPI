@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyndicateAPI.Domain", "Synd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyndicateAPI.Storage", "SyndicateAPI.Storage\SyndicateAPI.Storage.csproj", "{8E24FE81-7E30-4F51-88F0-45BE3F703EAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyndicateAPI.BusinessLogic", "SyndicateAPI.BusinessLogic\SyndicateAPI.BusinessLogic.csproj", "{5B78C1FE-A09F-4879-AA81-E784BEB0E0BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyndicateAPI.BusinessLogic", "SyndicateAPI.BusinessLogic\SyndicateAPI.BusinessLogic.csproj", "{5B78C1FE-A09F-4879-AA81-E784BEB0E0BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyndicateAPI.Utils", "SyndicateAPI.Utils\SyndicateAPI.Utils.csproj", "{834C804E-0D65-4C43-8B70-5097FF09F019}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{5B78C1FE-A09F-4879-AA81-E784BEB0E0BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B78C1FE-A09F-4879-AA81-E784BEB0E0BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B78C1FE-A09F-4879-AA81-E784BEB0E0BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{834C804E-0D65-4C43-8B70-5097FF09F019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{834C804E-0D65-4C43-8B70-5097FF09F019}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{834C804E-0D65-4C43-8B70-5097FF09F019}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{834C804E-0D65-4C43-8B70-5097FF09F019}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
