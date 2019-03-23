@@ -30,7 +30,8 @@ namespace SyndicateAPI.BusinessLogic.Services
         {
             var user = GetAll().FirstOrDefault(x =>
                 x.Login == username &&
-                x.Password == password);
+                x.Password == password &&
+                x.IsActive);
 
             if (user == null)
                 return null;
