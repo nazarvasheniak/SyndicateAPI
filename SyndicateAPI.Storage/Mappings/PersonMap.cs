@@ -15,7 +15,7 @@ namespace SyndicateAPI.Storage.Mappings
 
             Map(u => u.FirstName, "first_name");
             Map(u => u.LastName, "last_name");
-            Map(u => u.PhoneNumber, "phone_num");
+            Map(u => u.Email, "email");
             Map(u => u.Biography, "bio");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }

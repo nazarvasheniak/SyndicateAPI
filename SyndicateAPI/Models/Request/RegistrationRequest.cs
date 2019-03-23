@@ -27,7 +27,7 @@ namespace SyndicateAPI.Models.Request
         public string ConfirmPassword { get; set; }
 
         [Required]
-        public string PhoneNumber { get; set; }
+        public string Email { get; set; }
 
         [Required]
         public bool Subscribe { get; set; }

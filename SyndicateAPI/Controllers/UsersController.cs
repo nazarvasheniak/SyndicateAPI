@@ -40,12 +40,12 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "City error"
                 });
 
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.PhoneNumber);
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Email);
             if (user != null)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "Phone number is already used by another user"
+                    Message = "Email is already used by another user"
                 });
 
             user = UserService.GetAll().FirstOrDefault(x => x.Nickname == request.Nickname);
@@ -67,7 +67,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             {
                 FirstName = request.FirsName,
                 LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
+                Email = request.Email,
                 City = city
             };
 
@@ -75,7 +75,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 
             user = new User
             {
-                Login = request.PhoneNumber,
+                Login = request.Email,
                 Password = request.Password,
                 Nickname = request.Nickname,
                 RegTime = DateTime.UtcNow,

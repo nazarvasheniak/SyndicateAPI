@@ -11,7 +11,7 @@ namespace SyndicateAPI.Models
         public long ID { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
+        public string Email { get; set; }
         public string Biography { get; set; }
         public CityViewModel City { get; set; }
 
@@ -22,7 +22,7 @@ namespace SyndicateAPI.Models
             ID = person.ID;
             FirstName = person.LastName;
             LastName = person.LastName;
-            PhoneNumber = person.PhoneNumber;
+            Email = person.Email;
             Biography = person.Biography;
             City = new CityViewModel(person.City);
         }

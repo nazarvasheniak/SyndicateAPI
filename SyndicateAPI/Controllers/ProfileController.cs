@@ -22,17 +22,20 @@ namespace SyndicateAPI.Controllers
         private IPersonService PersonService { get; set; }
         private IRewardService RewardService { get; set; }
         private ICityService CityService { get; set; }
+        private IVehicleService VehicleService { get; set; }
 
         public ProfileController([FromServices]
             IUserService userService,
             IPersonService personService,
             IRewardService rewardService,
-            ICityService cityService)
+            ICityService cityService,
+            IVehicleService vehicleService)
         {
             UserService = userService;
             PersonService = personService;
             RewardService = rewardService;
             CityService = cityService;
+            VehicleService = vehicleService;
         }
 
         [HttpGet]
@@ -45,6 +48,12 @@ namespace SyndicateAPI.Controllers
             {
                 Data = profile
             });
+        }
+
+        [HttpGet("vehicles")]
+        public async Task<IActionResult> GetVehicles()
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
         }
 
         [HttpGet("{id}")]
@@ -87,10 +96,10 @@ namespace SyndicateAPI.Controllers
             if (!request.Nickname.Equals(user.Nickname))
                 user.Nickname = request.Nickname;
 
-            if (!request.PhoneNumber.Equals(user.Login))
+            if (!request.Email.Equals(user.Login))
             {
-                user.Login = request.PhoneNumber;
-                user.Person.PhoneNumber = request.PhoneNumber;
+                user.Login = request.Email;
+                user.Person.Email = request.Email;
             }
 
             if (!request.CityID.Equals(user.Person.City.ID))

@@ -18,6 +18,7 @@ namespace SyndicateAPI.Domain.Models
         public virtual DriveType Drive { get; set; }
         public virtual TransmissionType Transmission { get; set; }
         public virtual BodyType Body { get; set; }
+        public virtual User Owner { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

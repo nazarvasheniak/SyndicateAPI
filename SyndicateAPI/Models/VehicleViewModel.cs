@@ -20,6 +20,7 @@ namespace SyndicateAPI.Models
         public DriveType Drive { get; set; }
         public TransmissionType Transmission { get; set; }
         public BodyType Body { get; set; }
+        public UserViewModel Owner { get; set; }
 
         public VehicleViewModel() { }
 
@@ -36,6 +37,7 @@ namespace SyndicateAPI.Models
             Drive = vehicle.Drive;
             Transmission = vehicle.Transmission;
             Body = vehicle.Body;
+            Owner = new UserViewModel(vehicle.Owner);
         }
     }
 }

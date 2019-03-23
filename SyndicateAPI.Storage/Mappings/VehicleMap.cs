@@ -18,6 +18,7 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Photo, "id_photo");
             References(e => e.Class, "id_class");
             References(e => e.Category, "id_category");
+            References(e => e.Owner, "id_owner");
 
             Map(u => u.Model, "model");
             Map(u => u.Power, "power");
