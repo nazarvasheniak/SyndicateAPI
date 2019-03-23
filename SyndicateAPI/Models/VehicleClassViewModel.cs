@@ -12,9 +12,12 @@ namespace SyndicateAPI.Models
 
         public VehicleClassViewModel(VehicleClass vehicleClass)
         {
-            ID = vehicleClass.ID;
-            Title = vehicleClass.Title;
-            Icon = new FileViewModel(vehicleClass.Icon);
+            if (vehicleClass != null)
+            {
+                ID = vehicleClass.ID;
+                Title = vehicleClass.Title;
+                Icon = new FileViewModel(vehicleClass.Icon);
+            }
         }
     }
 }

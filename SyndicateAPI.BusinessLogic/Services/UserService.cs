@@ -38,7 +38,7 @@ namespace SyndicateAPI.BusinessLogic.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Nickname)
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login)
             };
 
             var claimsIdentity = new ClaimsIdentity(

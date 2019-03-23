@@ -15,7 +15,6 @@ namespace SyndicateAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ProfileController : Controller
     {
         private IUserService UserService { get; set; }
@@ -39,6 +38,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetProfile()
         {
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
@@ -51,6 +51,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("vehicles")]
+        [Authorize]
         public async Task<IActionResult> GetVehicles()
         {
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
@@ -63,6 +64,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("{id}/vehicles")]
+        [Authorize]
         public async Task<IActionResult> GetVehicles(long id)
         {
             var user = UserService.Get(id);
@@ -82,6 +84,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetProfile(long id)
         {
             var user = UserService.Get(id);
@@ -101,33 +104,27 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
-            if (!request.Password.Equals(request.ConfirmPassword))
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Passwords are not equals"
-                });
-
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
-            if (!request.FirstName.Equals(user.Person.FirstName))
+            if (request.FirstName != null && !request.FirstName.Equals(user.Person.FirstName))
                 user.Person.FirstName = request.FirstName;
 
-            if (!request.LastName.Equals(user.Person.LastName))
+            if (request.LastName != null && !request.LastName.Equals(user.Person.LastName))
                 user.Person.LastName = request.LastName;
 
-            if (!request.Nickname.Equals(user.Nickname))
+            if (request.Nickname != null && !request.Nickname.Equals(user.Nickname))
                 user.Nickname = request.Nickname;
 
-            if (!request.Email.Equals(user.Login))
+            if (request.Email != null && !request.Email.Equals(user.Login))
             {
                 user.Login = request.Email;
                 user.Person.Email = request.Email;
             }
 
-            if (!request.CityID.Equals(user.Person.City.ID))
+            if (request.CityID != 0 && !request.CityID.Equals(user.Person.City.ID))
             {
                 var city = CityService.Get(request.CityID);
                 if (city == null)
@@ -140,10 +137,10 @@ namespace SyndicateAPI.Controllers
                 user.Person.City = city;
             }
 
-            if (!request.Biography.Equals(user.Person.Biography))
+            if (request.Biography != null && !request.Biography.Equals(user.Person.Biography))
                 user.Person.Biography = request.Biography;
 
-            if (!request.Password.Equals(user.Password))
+            if (request.Password != null && !request.Password.Equals(user.Password))
             {
                 if (!request.Password.Equals(request.ConfirmPassword))
                     return BadRequest(new ResponseModel
@@ -158,7 +155,7 @@ namespace SyndicateAPI.Controllers
             PersonService.Update(user.Person);
             UserService.Update(user);
 
-            return Ok(new DataResponse<UserViewModel>
+            return Json(new DataResponse<UserViewModel>
             {
                 Data = new UserViewModel(user)
             });

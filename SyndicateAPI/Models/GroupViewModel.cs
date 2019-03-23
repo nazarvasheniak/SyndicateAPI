@@ -19,12 +19,15 @@ namespace SyndicateAPI.Models
 
         public GroupViewModel(Group group)
         {
-            ID = group.ID;
-            Name = group.Name;
-            ShortDesc = group.ShortDesc;
-            FullDesc = group.FullDesc;
-            Avatar = new FileViewModel(group.Avatar);
-            Owner = new UserViewModel(group.Owner);
+            if (group != null)
+            {
+                ID = group.ID;
+                Name = group.Name;
+                ShortDesc = group.ShortDesc;
+                FullDesc = group.FullDesc;
+                Avatar = new FileViewModel(group.Avatar);
+                Owner = new UserViewModel(group.Owner);
+            }
         }
     }
 }

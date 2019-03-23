@@ -18,10 +18,13 @@ namespace SyndicateAPI.Models
 
         public FileViewModel(File file)
         {
-            ID = file.ID;
-            Name = file.Name;
-            Type = file.Type;
-            Url = file.Url;
+            if (file != null)
+            {
+                ID = file.ID;
+                Name = file.Name;
+                Type = file.Type;
+                Url = file.Url;
+            }
         }
     }
 }

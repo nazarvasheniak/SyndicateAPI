@@ -17,10 +17,13 @@ namespace SyndicateAPI.Models
 
         public RewardViewModel(Reward reward)
         {
-            ID = reward.ID;
-            Name = reward.Name;
-            Description = reward.Description;
-            Icon = new FileViewModel(reward.Icon);
+            if (reward != null)
+            {
+                ID = reward.ID;
+                Name = reward.Name;
+                Description = reward.Description;
+                Icon = new FileViewModel(reward.Icon);
+            }
         }
     }
 }

@@ -15,8 +15,11 @@ namespace SyndicateAPI.Models
 
         public CityViewModel(City city)
         {
-            ID = city.ID;
-            Name = city.Name;
+            if (city != null)
+            {
+                ID = city.ID;
+                Name = city.Name;
+            }
         }
     }
 }

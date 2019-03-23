@@ -15,8 +15,11 @@ namespace SyndicateAPI.Models
 
         public VehicleCategoryViewModel(VehicleCategory vehicleCategory)
         {
-            ID = vehicleCategory.ID;
-            Title = vehicleCategory.Title;
+            if (vehicleCategory != null)
+            {
+                ID = vehicleCategory.ID;
+                Title = vehicleCategory.Title;
+            }
         }
     }
 }

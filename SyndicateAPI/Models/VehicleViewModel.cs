@@ -26,18 +26,21 @@ namespace SyndicateAPI.Models
 
         public VehicleViewModel(Vehicle vehicle)
         {
-            ID = vehicle.ID;
-            Model = vehicle.Model;
-            Power = vehicle.Power;
-            Year = vehicle.Year;
-            Price = vehicle.Price;
-            Photo = new FileViewModel(vehicle.Photo);
-            Class = new VehicleClassViewModel(vehicle.Class);
-            Category = new VehicleCategoryViewModel(vehicle.Category);
-            Drive = vehicle.Drive;
-            Transmission = vehicle.Transmission;
-            Body = vehicle.Body;
-            Owner = new UserViewModel(vehicle.Owner);
+            if (vehicle != null)
+            {
+                ID = vehicle.ID;
+                Model = vehicle.Model;
+                Power = vehicle.Power;
+                Year = vehicle.Year;
+                Price = vehicle.Price;
+                Photo = new FileViewModel(vehicle.Photo);
+                Class = new VehicleClassViewModel(vehicle.Class);
+                Category = new VehicleCategoryViewModel(vehicle.Category);
+                Drive = vehicle.Drive;
+                Transmission = vehicle.Transmission;
+                Body = vehicle.Body;
+                Owner = new UserViewModel(vehicle.Owner);
+            }
         }
     }
 }

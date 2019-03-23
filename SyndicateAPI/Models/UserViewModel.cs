@@ -20,13 +20,16 @@ namespace SyndicateAPI.Models
 
         public UserViewModel(User user)
         {
-            ID = user.ID;
-            Nickname = user.Nickname;
-            PointsCount = user.PointsCount;
-            RegTime = user.RegTime;
-            Avatar = new FileViewModel(user.Avatar);
-            Person = new PersonViewModel(user.Person);
-            Group = new GroupViewModel(user.Group);
+            if (user != null)
+            {
+                ID = user.ID;
+                Nickname = user.Nickname;
+                PointsCount = user.PointsCount;
+                RegTime = user.RegTime;
+                Avatar = new FileViewModel(user.Avatar);
+                Person = new PersonViewModel(user.Person);
+                Group = new GroupViewModel(user.Group);
+            }
         }
     }
 }

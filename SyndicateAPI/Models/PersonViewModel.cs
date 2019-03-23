@@ -19,12 +19,15 @@ namespace SyndicateAPI.Models
 
         public PersonViewModel(Person person)
         {
-            ID = person.ID;
-            FirstName = person.LastName;
-            LastName = person.LastName;
-            Email = person.Email;
-            Biography = person.Biography;
-            City = new CityViewModel(person.City);
+            if (person != null)
+            {
+                ID = person.ID;
+                FirstName = person.LastName;
+                LastName = person.LastName;
+                Email = person.Email;
+                Biography = person.Biography;
+                City = new CityViewModel(person.City);
+            }
         }
     }
 }

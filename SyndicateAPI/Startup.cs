@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using SyndicateAPI.BusinessLogic;
 using SyndicateAPI.Storage;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SyndicateAPI
 {
@@ -52,6 +54,10 @@ namespace SyndicateAPI
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "Syndicate API", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new ApiKeyScheme { In = "header", Description = "Please enter JWT with Bearer into field", Name = "Authorization", Type = "apiKey" });
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
+                { "Bearer", Enumerable.Empty<string>() },
+                });
             });
         }
 
