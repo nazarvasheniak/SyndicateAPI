@@ -72,7 +72,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 
             var person = new Person
             {
-                FirstName = request.FirsName,
+                FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
                 City = city

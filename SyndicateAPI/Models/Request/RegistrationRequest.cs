@@ -5,7 +5,7 @@ namespace SyndicateAPI.Models.Request
     public class RegistrationRequest
     {
         [Required]
-        public string FirsName { get; set; }
+        public string FirstName { get; set; }
 
         [Required]
         public string LastName { get; set; }
