@@ -44,7 +44,7 @@ namespace SyndicateAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadFile([FromBody] UploadFileRequest request)
         {
-            return Ok();
+            return Ok(new ResponseModel());
         }
     }
 }

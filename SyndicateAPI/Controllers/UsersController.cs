@@ -127,7 +127,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             user.ActivationTime = DateTime.UtcNow;
             UserService.Update(user);
 
-            return Ok();
+            return Ok(new ResponseModel());
         }
 
         [HttpPost("auth")]

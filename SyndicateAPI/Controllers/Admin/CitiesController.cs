@@ -164,7 +164,7 @@ namespace SyndicateAPI.Controllers.Admin
 
             CityService.Delete(id);
 
-            return Ok();
+            return Ok(new ResponseModel());
         }
 
         [HttpDelete("{name}")]
@@ -192,7 +192,7 @@ namespace SyndicateAPI.Controllers.Admin
 
             CityService.Delete(city.ID);
 
-            return Ok();
+            return Ok(new ResponseModel());
         }
     }
 }

@@ -150,7 +150,7 @@ namespace SyndicateAPI.Controllers.Admin
 
             RatingLevelService.Delete(ratingLevel.ID);
 
-            return Ok();
+            return Ok(new ResponseModel());
         }
     }
 }

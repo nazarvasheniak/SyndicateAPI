@@ -21,19 +21,22 @@ namespace SyndicateAPI.Controllers
         private IRewardService RewardService { get; set; }
         private ICityService CityService { get; set; }
         private IVehicleService VehicleService { get; set; }
+        private IUserSubscriptionService UserSubscriptionService { get; set; }
 
         public ProfileController([FromServices]
             IUserService userService,
             IPersonService personService,
             IRewardService rewardService,
             ICityService cityService,
-            IVehicleService vehicleService)
+            IVehicleService vehicleService,
+            IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
             PersonService = personService;
             RewardService = rewardService;
             CityService = cityService;
             VehicleService = vehicleService;
+            UserSubscriptionService = userSubscriptionService;
         }
 
         [HttpGet]
@@ -125,6 +128,76 @@ namespace SyndicateAPI.Controllers
             {
                 Data = new UserViewModel(user)
             });
+        }
+
+        [HttpPost("subscribe")]
+        public async Task<IActionResult> SubscribeToUser([FromBody] SubscribeRequest request)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var subject = UserService.Get(request.SubjectID);
+            if (subject == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Subject not found"
+                });
+
+            var subscription = UserSubscriptionService.GetAll()
+                .FirstOrDefault(x => x.Subscriber == user && x.Subject == subject);
+
+            if (subscription == null)
+            {
+                subscription = new UserSubscription
+                {
+                    Subject = subject,
+                    Subscriber = user,
+                    IsActive = true
+                };
+
+                UserSubscriptionService.Create(subscription);
+            }
+
+            subscription.IsActive = true;
+            UserSubscriptionService.Update(subscription);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpDelete("subscribe")]
+        public async Task<IActionResult> Unsubscribe([FromBody] SubscribeRequest request)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var subject = UserService.Get(request.SubjectID);
+            if (subject == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Subject not found"
+                });
+
+            var subscription = UserSubscriptionService.GetAll()
+                .FirstOrDefault(x => x.Subscriber == user && x.Subject == subject);
+
+            if (subscription == null)
+            {
+                subscription = new UserSubscription
+                {
+                    Subject = subject,
+                    Subscriber = user,
+                    IsActive = false
+                };
+
+                UserSubscriptionService.Create(subscription);
+            }
+
+            subscription.IsActive = false;
+            UserSubscriptionService.Update(subscription);
+
+            return Ok(new ResponseModel());
         }
 
         private ProfileViewModel GetProfileModel(User user)
