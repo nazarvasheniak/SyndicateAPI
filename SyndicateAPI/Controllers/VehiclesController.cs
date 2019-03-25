@@ -227,27 +227,5 @@ namespace SyndicateAPI.Controllers
                 Data = vehicles
             });
         }
-
-        [HttpGet("{id}/vehicles")]
-        public async Task<IActionResult> GetVehicles(long id)
-        {
-            var user = UserService.Get(id);
-            if (user == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "User not found"
-                });
-
-            var vehicles = VehicleService.GetAll()
-                .Where(x => x.Owner == user)
-                .Select(x => new VehicleViewModel(x))
-                .ToList();
-
-            return Ok(new DataResponse<List<VehicleViewModel>>
-            {
-                Data = vehicles
-            });
-        }
     }
 }
