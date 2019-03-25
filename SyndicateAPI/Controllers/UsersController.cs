@@ -15,17 +15,20 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
     public class UsersController : Controller
     {
         private IUserService UserService { get; set; }
+        private IAdminUserService AdminUserService { get; set; }
         private IPersonService PersonService { get; set; }
         private ICityService CityService { get; set; }
         private IEmailService EmailService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
+            IAdminUserService adminUserService,
             IPersonService personService,
             ICityService cityService,
             IEmailService emailService)
         {
             UserService = userService;
+            AdminUserService = adminUserService;
             PersonService = personService;
             CityService = cityService;
             EmailService = emailService;
@@ -145,6 +148,27 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             {
                 Token = authToken,
                 User = new UserViewModel(user)
+            });
+        }
+
+        [HttpPost("admin/auth")]
+        public async Task<IActionResult> AdminAuthorization([FromBody] AuthorizationRequest request)
+        {
+            var authToken = AdminUserService.AuthorizeUser(request.Login, request.Password);
+            if (authToken == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Wrong username or password"
+                });
+
+            var user = AdminUserService.GetAll()
+                .FirstOrDefault(x => x.Login == request.Login);
+
+            return Json(new AdminAuthorizationResponse
+            {
+                Token = authToken,
+                User = new AdminUserViewModel(user)
             });
         }
 

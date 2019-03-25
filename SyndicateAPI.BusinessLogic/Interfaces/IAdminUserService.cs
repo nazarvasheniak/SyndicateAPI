@@ -7,5 +7,6 @@ namespace SyndicateAPI.BusinessLogic.Interfaces
 {
     public interface IAdminUserService : IBaseCrudService<AdminUser>
     {
+        string AuthorizeUser(string username, string password);
     }
 }
