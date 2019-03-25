@@ -1,8 +1,5 @@
 ﻿using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Utils.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SyndicateAPI.BusinessLogic.Services

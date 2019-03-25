@@ -1,4 +1,5 @@
-﻿namespace SyndicateAPI.Domain.Enums
+﻿
+namespace SyndicateAPI.Domain.Enums
 {
     public enum TransmissionType
     {

@@ -3,9 +3,7 @@ using SyndicateAPI.Domain;
 using SyndicateAPI.Domain.Interfaces;
 using SyndicateAPI.Storage.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace SyndicateAPI.BusinessLogic.Services
 {

@@ -2,9 +2,7 @@
 using SyndicateAPI.Domain;
 using SyndicateAPI.Storage.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace SyndicateAPI.Storage.Repositories
 {

@@ -1,5 +1,4 @@
 ﻿using FluentNHibernate.Mapping;
-using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 
 namespace SyndicateAPI.Storage.Mappings

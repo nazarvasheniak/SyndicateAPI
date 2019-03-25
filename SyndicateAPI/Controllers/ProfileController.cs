@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Domain.Models;
@@ -15,6 +13,7 @@ namespace SyndicateAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProfileController : Controller
     {
         private IUserService UserService { get; set; }
@@ -38,10 +37,11 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetProfile()
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
             var profile = GetProfileModel(user);
             
             return Ok(new DataResponse<ProfileViewModel>
@@ -50,41 +50,7 @@ namespace SyndicateAPI.Controllers
             });
         }
 
-        [HttpGet("vehicles")]
-        [Authorize]
-        public async Task<IActionResult> GetVehicles()
-        {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
-            var vehicles = VehicleService.GetAll().Where(x => x.Owner == user).Select(x => new VehicleViewModel(x)).ToList();
-
-            return Ok(new DataResponse<List<VehicleViewModel>>
-            {
-                Data = vehicles
-            });
-        }
-
-        [HttpGet("{id}/vehicles")]
-        [Authorize]
-        public async Task<IActionResult> GetVehicles(long id)
-        {
-            var user = UserService.Get(id);
-            if (user == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "User not found"
-                });
-
-            var vehicles = VehicleService.GetAll().Where(x => x.Owner == user).Select(x => new VehicleViewModel(x)).ToList();
-
-            return Ok(new DataResponse<List<VehicleViewModel>>
-            {
-                Data = vehicles
-            });
-        }
-
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<IActionResult> GetProfile(long id)
         {
             var user = UserService.Get(id);
@@ -104,10 +70,10 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpPut]
-        [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
 
             if (request.FirstName != null && !request.FirstName.Equals(user.Person.FirstName))
                 user.Person.FirstName = request.FirstName;
@@ -163,6 +129,11 @@ namespace SyndicateAPI.Controllers
 
         private ProfileViewModel GetProfileModel(User user)
         {
+            var vehicles = VehicleService.GetAll()
+                .Where(x => x.Owner == user)
+                .Select(x => new VehicleViewModel(x))
+                .ToList();
+
             var profile = new ProfileViewModel
             {
                 FirstName = user.Person.FirstName,
@@ -172,7 +143,8 @@ namespace SyndicateAPI.Controllers
                 CityName = user.Person.City.Name,
                 SubscribersCount = 0,
                 Biography = user.Person.Biography,
-                Rewards = new List<RewardViewModel>()
+                Rewards = new List<RewardViewModel>(),
+                Vehicles = vehicles
             };
 
             if (user.Group != null)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +43,9 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "City error"
                 });
 
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Email);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == request.Email);
+
             if (user != null)
                 return BadRequest(new ResponseModel
                 {
@@ -52,7 +53,9 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "Email is already used by another user"
                 });
 
-            user = UserService.GetAll().FirstOrDefault(x => x.Nickname == request.Nickname);
+            user = UserService.GetAll()
+                .FirstOrDefault(x => x.Nickname == request.Nickname);
+
             if (user != null)
                 return BadRequest(new ResponseModel
                 {
@@ -129,11 +132,20 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         {
             var authToken = UserService.AuthorizeUser(request.Login, request.Password);
             if (authToken == null)
-                return Json(new ResponseModel { Success = false, Message = "Wrong username or password" });
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Wrong username or password"
+                });
 
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Login);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == request.Login);
 
-            return Json(new AuthorizationResponse { Token = authToken, User = new UserViewModel(user) });
+            return Json(new AuthorizationResponse
+            {
+                Token = authToken,
+                User = new UserViewModel(user)
+            });
         }
 
         private int RandomNumber()

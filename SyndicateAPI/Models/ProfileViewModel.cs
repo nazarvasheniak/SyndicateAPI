@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace SyndicateAPI.Models
 {
@@ -18,5 +15,6 @@ namespace SyndicateAPI.Models
         public long SubscribersCount { get; set; }
         public string Biography { get; set; }
         public List<RewardViewModel> Rewards { get; set; }
+        public List<VehicleViewModel> Vehicles { get; set; }
     }
 }
