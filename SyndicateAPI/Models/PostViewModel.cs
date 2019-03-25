@@ -1,4 +1,5 @@
 ﻿using SyndicateAPI.Domain.Enums;
+using SyndicateAPI.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,22 @@ namespace SyndicateAPI.Models
         public UserViewModel Author { get; set; }
         public PostType Type { get; set; }
         public bool IsPublished { get; set; }
+
+        public PostViewModel() { }
+
+        public PostViewModel(Post post)
+        {
+            if (post != null)
+            {
+                ID = post.ID;
+                Text = post.Text;
+                PublishTime = post.PublishTime;
+                Image = new FileViewModel(post.Image);
+                MinRatingLevel = new RatingLevelViewModel(post.MinRatingLevel);
+                Author = new UserViewModel(post.Author);
+                Type = post.Type;
+                IsPublished = post.IsPublished;
+            }
+        }
     }
 }
