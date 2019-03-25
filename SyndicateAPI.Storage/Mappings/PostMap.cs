@@ -1,4 +1,5 @@
 ﻿using FluentNHibernate.Mapping;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.Text, "text");
             Map(u => u.PublishTime, "publish_time");
             Map(u => u.IsPublished, "is_published").Not.Nullable();
-            Map(u => u.Type, "type");
+            Map(u => u.Type, "type").CustomType<PostType>();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

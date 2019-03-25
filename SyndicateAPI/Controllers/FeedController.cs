@@ -110,6 +110,7 @@ namespace SyndicateAPI.Controllers
                     Message = "User not in group"
                 });
 
+
             var post = new Post
             {
                 Text = request.Text,
