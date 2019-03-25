@@ -27,8 +27,8 @@ namespace SyndicateAPI
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddBuisnessServices();
-            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=8W8GsXqrcaOlHjR;Database=syndicate_db;SslMode=none;");
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin123;Database=syndicate_db;SslMode=none;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=8W8GsXqrcaOlHjR;Database=syndicate_db;SslMode=none;");
+            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin123;Database=syndicate_db;SslMode=none;");
             services.AddCors();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
