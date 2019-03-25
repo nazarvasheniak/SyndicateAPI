@@ -60,7 +60,7 @@ namespace SyndicateAPI.Controllers
             foreach (var subscription in subsriptions)
             {
                 var posts = PostService.GetAll()
-                    .Where(x => x.Author == subscription.Subject && x.IsPublished)
+                    .Where(x => x.Author == subscription.Subject && x.IsPublished && x.Type == PostType.User)
                     .Select(x => new PostViewModel(x))
                     .ToList();
 
@@ -77,7 +77,31 @@ namespace SyndicateAPI.Controllers
             });
         }
 
-        [HttpPost("post/user")]
+        [HttpGet("group")]
+        public async Task<IActionResult> GetGroupFeed()
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            if (user.Group == null)
+                return Ok(new ResponseModel
+                {
+                    Message = "Вы не состоите в группировке"
+                });
+
+            var feed = PostService.GetAll()
+                .Where(x => x.Author == user.Group.Owner && x.Type == PostType.Group && x.IsPublished)
+                .Select(x => new PostViewModel(x))
+                .OrderBy(x => x.PublishTime)
+                .ToList();
+
+            return Ok(new DataResponse<List<PostViewModel>>
+            {
+                Data = feed
+            });
+        }
+
+        [HttpPost("user")]
         public async Task<IActionResult> PublishUserPost([FromBody] PublishPostRequest request)
         {
             var ratingLevel = RatingLevelService.Get(request.RatingLevelID);
@@ -122,7 +146,7 @@ namespace SyndicateAPI.Controllers
             });
         }
 
-        [HttpPost("post/group")]
+        [HttpPost("group")]
         public async Task<IActionResult> PublishGroupPost([FromBody] PublishPostRequest request)
         {
             var ratingLevel = RatingLevelService.Get(request.RatingLevelID);
