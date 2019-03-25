@@ -23,17 +23,58 @@ namespace SyndicateAPI.Controllers
         private IPostService PostService { get; set; }
         private IFileService FileService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
+        private IUserSubscriptionService UserSubscriptionService { get; set; }
 
         public FeedController([FromBody]
             IUserService userService,
             IPostService postService,
             IFileService fileService,
-            IRatingLevelService ratingLevelService)
+            IRatingLevelService ratingLevelService,
+            IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
             PostService = postService;
             FileService = fileService;
             RatingLevelService = ratingLevelService;
+            UserSubscriptionService = userSubscriptionService;
+        }
+
+        [HttpGet("user")]
+        public async Task<IActionResult> GetUserFeed()
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var subsriptions = UserSubscriptionService.GetAll()
+                .Where(x => x.Subscriber == user)
+                .ToList();
+
+            if (subsriptions == null || subsriptions.Count == 0)
+                return Ok(new ResponseModel
+                {
+                    Message = "Вы не подписаны на людей"
+                });
+
+            var feed = new List<PostViewModel>();
+            
+            foreach (var subscription in subsriptions)
+            {
+                var posts = PostService.GetAll()
+                    .Where(x => x.Author == subscription.Subject && x.IsPublished)
+                    .Select(x => new PostViewModel(x))
+                    .ToList();
+
+                if (posts != null && posts.Count != 0)
+                    feed.AddRange(posts);
+            }
+
+            if (feed.Count != 0)
+                feed = feed.OrderBy(x => x.PublishTime).ToList();
+
+            return Ok(new DataResponse<List<PostViewModel>>
+            {
+                Data = feed
+            });
         }
 
         [HttpPost("post/user")]
