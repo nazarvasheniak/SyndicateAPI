@@ -18,7 +18,9 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<IVehicleClassService, VehicleClassService>()
                 .AddScoped<IVehicleCategoryService, VehicleCategoryService>()
                 .AddScoped<IVehicleService, VehicleService>()
-                .AddScoped<IEmailService, EmailService>();
+                .AddScoped<IEmailService, EmailService>()
+                .AddScoped<IRatingLevelService, RatingLevelService>()
+                .AddScoped<IPostService, PostService>();
         }
     }
 }
