@@ -8,5 +8,6 @@ namespace SyndicateAPI.Models.Response
     public class AuthorizationResponse : ResponseModel
     {
         public string Token { get; set; }
+        public UserViewModel User { get; set; }
     }
 }

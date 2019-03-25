@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Domain.Models;
+using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
 
@@ -130,7 +131,9 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             if (authToken == null)
                 return Json(new ResponseModel { Success = false, Message = "Wrong username or password" });
 
-            return Json(new AuthorizationResponse { Token = authToken });
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Login);
+
+            return Json(new AuthorizationResponse { Token = authToken, User = new UserViewModel(user) });
         }
 
         private int RandomNumber()
