@@ -10,7 +10,7 @@ using SyndicateAPI.Models.Response;
 
 namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UsersController : Controller
     {

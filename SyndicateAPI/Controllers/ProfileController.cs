@@ -11,7 +11,7 @@ using SyndicateAPI.Models.Response;
 
 namespace SyndicateAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/profile")]
     [ApiController]
     [Authorize]
     public class ProfileController : Controller

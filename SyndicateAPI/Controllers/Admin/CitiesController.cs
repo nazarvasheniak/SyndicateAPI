@@ -13,7 +13,7 @@ using SyndicateAPI.Models.Response;
 
 namespace SyndicateAPI.Controllers.Admin
 {
-    [Route("api/admin/[controller]")]
+    [Route("api/admin/cities")]
     [ApiController]
     [Authorize]
     public class CitiesController : Controller

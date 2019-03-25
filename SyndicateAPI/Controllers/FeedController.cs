@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SyndicateAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/feed")]
     [ApiController]
     [Authorize]
     public class FeedController : Controller

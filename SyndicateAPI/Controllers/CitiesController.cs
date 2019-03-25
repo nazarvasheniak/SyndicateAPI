@@ -8,7 +8,7 @@ using SyndicateAPI.Models.Response;
 
 namespace SyndicateAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/cities")]
     [ApiController]
     public class CitiesController : Controller
     {

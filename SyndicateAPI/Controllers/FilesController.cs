@@ -12,7 +12,7 @@ using SyndicateAPI.Models.Response;
 
 namespace SyndicateAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/files")]
     [ApiController]
     [Authorize]
     public class FilesController : Controller
