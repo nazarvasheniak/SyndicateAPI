@@ -18,7 +18,7 @@ namespace SyndicateAPI.Models
             if (person != null)
             {
                 ID = person.ID;
-                FirstName = person.LastName;
+                FirstName = person.FirstName;
                 LastName = person.LastName;
                 Email = person.Email;
                 Biography = person.Biography;
