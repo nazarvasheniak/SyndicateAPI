@@ -12,7 +12,7 @@ namespace SyndicateAPI.Models
         public string FullDesc { get; set; }
         public FileViewModel Avatar { get; set; }
         public UserViewModel Owner { get; set; }
-        public List<PostViewModel> Posts { get; set; }
+        public List<GroupPostViewModel> Posts { get; set; }
 
         public GroupViewModel() { }
 
@@ -29,7 +29,7 @@ namespace SyndicateAPI.Models
             }
         }
 
-        public GroupViewModel(Group group, IEnumerable<PostViewModel> posts)
+        public GroupViewModel(Group group, IEnumerable<GroupPostViewModel> posts)
         {
             if (group != null)
             {
@@ -42,11 +42,11 @@ namespace SyndicateAPI.Models
             }
 
             Posts = posts
-                .Where(x => x.IsPublished)
+                .Where(x => x.Post.IsPublished)
                 .ToList();
         }
 
-        public GroupViewModel(Group group, IEnumerable<Post> posts)
+        public GroupViewModel(Group group, IEnumerable<GroupPost> posts)
         {
             if (group != null)
             {
@@ -58,8 +58,8 @@ namespace SyndicateAPI.Models
                 Owner = new UserViewModel(group.Owner);
 
                 Posts = posts
-                    .Where(x => x.IsPublished)
-                    .Select(x => new PostViewModel(x))
+                    .Where(x => x.Post.IsPublished)
+                    .Select(x => new GroupPostViewModel(x))
                     .ToList();
             }
         }

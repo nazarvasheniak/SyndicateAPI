@@ -20,21 +20,24 @@ namespace SyndicateAPI.Controllers
         private IGroupService GroupService { get; set; }
         private IFileService FileService { get; set; }
         private IPostService PostService { get; set; }
+        private IGroupPostService GroupPostService { get; set; }
 
         public GroupsController([FromServices]
             IUserService userService,
             IGroupService groupService,
             IFileService fileService,
-            IPostService postService)
+            IPostService postService,
+            IGroupPostService groupPostService)
         {
             UserService = userService;
             GroupService = groupService;
             FileService = fileService;
             PostService = postService;
+            GroupPostService = groupPostService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetGroup(long id)
+        public async Task<IActionResult> GetGroup()
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.Login == User.Identity.Name);
@@ -45,9 +48,8 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы не состоите в группировке"
                 });
 
-            var posts = PostService.GetAll()
-                .Where(x => x.Author == user.Group.Owner && x.Type == PostType.Group && x.IsPublished)
-                .Select(x => new PostViewModel(x))
+            var posts = GroupPostService.GetAll()
+                .Where(x => x.Group == user.Group)
                 .ToList();
 
             return Ok(new DataResponse<GroupViewModel>

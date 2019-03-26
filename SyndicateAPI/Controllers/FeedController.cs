@@ -21,6 +21,7 @@ namespace SyndicateAPI.Controllers
         private IUserService UserService { get; set; }
         private IPostService PostService { get; set; }
         private IFileService FileService { get; set; }
+        private IGroupPostService GroupPostService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
 
@@ -28,12 +29,14 @@ namespace SyndicateAPI.Controllers
             IUserService userService,
             IPostService postService,
             IFileService fileService,
+            IGroupPostService groupPostService,
             IRatingLevelService ratingLevelService,
             IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
             PostService = postService;
             FileService = fileService;
+            GroupPostService = groupPostService;
             RatingLevelService = ratingLevelService;
             UserSubscriptionService = userSubscriptionService;
         }
@@ -88,13 +91,12 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы не состоите в группировке"
                 });
 
-            var feed = PostService.GetAll()
-                .Where(x => x.Author == user.Group.Owner && x.Type == PostType.Group && x.IsPublished)
-                .Select(x => new PostViewModel(x))
-                .OrderBy(x => x.PublishTime)
+            var feed = GroupPostService.GetAll()
+                .Where(x => x.Group == user.Group)
+                .Select(x => new GroupPostViewModel(x))
                 .ToList();
 
-            return Ok(new DataResponse<List<PostViewModel>>
+            return Ok(new DataResponse<List<GroupPostViewModel>>
             {
                 Data = feed
             });
@@ -174,7 +176,13 @@ namespace SyndicateAPI.Controllers
                     Message = "User not in group"
                 });
 
-
+            if (user != user.Group.Owner)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете публиковать посты в данной группировке"
+                });
+            
             var post = new Post
             {
                 Text = request.Text,
@@ -192,9 +200,17 @@ namespace SyndicateAPI.Controllers
 
             PostService.Create(post);
 
-            return Ok(new DataResponse<PostViewModel>
+            var groupPost = new GroupPost
             {
-                Data = new PostViewModel(post)
+                Post = post,
+                Group = user.Group
+            };
+
+            GroupPostService.Create(groupPost);
+
+            return Ok(new DataResponse<GroupPostViewModel>
+            {
+                Data = new GroupPostViewModel(groupPost)
             });
         }
     }
