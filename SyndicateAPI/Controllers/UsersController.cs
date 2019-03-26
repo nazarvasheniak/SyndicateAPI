@@ -81,8 +81,6 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                 City = city
             };
 
-            PersonService.Create(person);
-
             user = new User
             {
                 Login = request.Email,
@@ -95,9 +93,16 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                 ActivationCode = RandomNumber()
             };
 
-            UserService.Create(user);
+            var activationMessage = await EmailService.SendActivationMessage(user.Login, user.ActivationCode);
+            if (!activationMessage)
+                return Ok(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка отправки активационного письма"
+                });
 
-            await EmailService.SendActivationMessage(user.Login, user.ActivationCode);
+            PersonService.Create(person);
+            UserService.Create(user);
 
             return Ok(new RegistrationResponse
             {
@@ -135,7 +140,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         {
             var authToken = UserService.AuthorizeUser(request.Login, request.Password);
             if (authToken == null)
-                return Json(new ResponseModel
+                return BadRequest(new ResponseModel
                 {
                     Success = false,
                     Message = "Wrong username or password"
@@ -144,7 +149,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.Login == request.Login);
 
-            return Json(new AuthorizationResponse
+            return Ok(new AuthorizationResponse
             {
                 Token = authToken,
                 User = new UserViewModel(user)
@@ -156,7 +161,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         {
             var authToken = AdminUserService.AuthorizeUser(request.Login, request.Password);
             if (authToken == null)
-                return Json(new ResponseModel
+                return BadRequest(new ResponseModel
                 {
                     Success = false,
                     Message = "Wrong username or password"
@@ -165,7 +170,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             var user = AdminUserService.GetAll()
                 .FirstOrDefault(x => x.Login == request.Login);
 
-            return Json(new AdminAuthorizationResponse
+            return Ok(new AdminAuthorizationResponse
             {
                 Token = authToken,
                 User = new AdminUserViewModel(user)

@@ -22,6 +22,7 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<IEmailService, EmailService>()
                 .AddScoped<IRatingLevelService, RatingLevelService>()
                 .AddScoped<IPostService, PostService>()
+                .AddScoped<IGroupPostService, GroupPostService>()
                 .AddScoped<IUserSubscriptionService, UserSubscriptionService>();
         }
     }
