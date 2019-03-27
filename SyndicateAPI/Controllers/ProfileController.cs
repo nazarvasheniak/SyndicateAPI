@@ -141,7 +141,7 @@ namespace SyndicateAPI.Controllers
                 temp.TempCode = RandomNumber();
                 UserTempService.Update(temp);
 
-                await EmailService.SendChangeCode(temp.Email, temp.TempCode);
+                await EmailService.SendChangeMessage(temp.Email, temp.TempCode);
 
                 viewModel.Person.Email = temp.Email;
             }
