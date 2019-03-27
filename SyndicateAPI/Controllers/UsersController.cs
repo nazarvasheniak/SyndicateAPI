@@ -15,6 +15,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
     public class UsersController : Controller
     {
         private IUserService UserService { get; set; }
+        private IUserTempService UserTempService { get; set; }
         private IAdminUserService AdminUserService { get; set; }
         private IPersonService PersonService { get; set; }
         private ICityService CityService { get; set; }
@@ -22,12 +23,14 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 
         public UsersController([FromServices]
             IUserService userService,
+            IUserTempService userTempService,
             IAdminUserService adminUserService,
             IPersonService personService,
             ICityService cityService,
             IEmailService emailService)
         {
             UserService = userService;
+            UserTempService = userTempService;
             AdminUserService = adminUserService;
             PersonService = personService;
             CityService = cityService;
@@ -131,6 +134,43 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             user.IsActive = true;
             user.ActivationTime = DateTime.UtcNow;
             UserService.Update(user);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPost("changeEmail")]
+        public async Task<IActionResult> ChangeEmail([FromBody] ActivationRequest request)
+        {
+            var user = UserService.Get(request.UserID);
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            var temp = UserTempService.GetAll()
+                .FirstOrDefault(x => x.User == user);
+
+            if (temp == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Change email request not found"
+                });
+
+            if (!request.Code.Equals(temp.TempCode))
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы ввели неверный код"
+                });
+
+            user.Login = temp.Email;
+            UserService.Update(user);
+
+            user.Person.Email = temp.Email;
+            PersonService.Update(user.Person);
 
             return Ok(new ResponseModel());
         }

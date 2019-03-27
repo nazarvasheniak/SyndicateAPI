@@ -45,7 +45,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> GetUserFeed()
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var subsriptions = UserSubscriptionService.GetAll()
                 .Where(x => x.Subscriber == user)
@@ -83,7 +83,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> GetGroupFeed()
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             if (user.Group == null)
                 return Ok(new ResponseModel
@@ -122,7 +122,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var post = new Post
             {
@@ -167,7 +167,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             if (user.Group == null)
                 return BadRequest(new ResponseModel

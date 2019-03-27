@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,8 @@ namespace SyndicateAPI.Controllers
     public class ProfileController : Controller
     {
         private IUserService UserService { get; set; }
+        private IUserTempService UserTempService { get; set; }
+        private IEmailService EmailService { get; set; }
         private IPersonService PersonService { get; set; }
         private IRewardService RewardService { get; set; }
         private ICityService CityService { get; set; }
@@ -25,6 +28,8 @@ namespace SyndicateAPI.Controllers
 
         public ProfileController([FromServices]
             IUserService userService,
+            IUserTempService userTempService,
+            IEmailService emailService,
             IPersonService personService,
             IRewardService rewardService,
             ICityService cityService,
@@ -32,6 +37,7 @@ namespace SyndicateAPI.Controllers
             IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
+            UserTempService = userTempService;
             PersonService = personService;
             RewardService = rewardService;
             CityService = cityService;
@@ -43,7 +49,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> GetProfile()
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var profile = GetProfileModel(user);
             
@@ -76,7 +82,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             if (request.FirstName != null && !request.FirstName.Equals(user.Person.FirstName))
                 user.Person.FirstName = request.FirstName;
@@ -86,12 +92,6 @@ namespace SyndicateAPI.Controllers
 
             if (request.Nickname != null && !request.Nickname.Equals(user.Nickname))
                 user.Nickname = request.Nickname;
-
-            if (request.Email != null && !request.Email.Equals(user.Login))
-            {
-                user.Login = request.Email;
-                user.Person.Email = request.Email;
-            }
 
             if (request.CityID != 0 && !request.CityID.Equals(user.Person.City.ID))
             {
@@ -124,9 +124,31 @@ namespace SyndicateAPI.Controllers
             PersonService.Update(user.Person);
             UserService.Update(user);
 
+            var viewModel = new UserViewModel(user);
+
+            if (request.Email != null && !request.Email.Equals(user.Login))
+            {
+                var temp = UserTempService.GetAll()
+                    .FirstOrDefault(x => x.User == user);
+
+                if (temp == null)
+                {
+                    temp = new UserTemp { User = user };
+                    UserTempService.Create(temp);
+                }
+
+                temp.Email = request.Email;
+                temp.TempCode = RandomNumber();
+                UserTempService.Update(temp);
+
+                await EmailService.SendChangeCode(temp.Email, temp.TempCode);
+
+                viewModel.Person.Email = temp.Email;
+            }
+
             return Json(new DataResponse<UserViewModel>
             {
-                Data = new UserViewModel(user)
+                Data = viewModel
             });
         }
 
@@ -134,7 +156,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> SubscribeToUser([FromBody] SubscribeRequest request)
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var subject = UserService.Get(request.SubjectID);
             if (subject == null)
@@ -169,7 +191,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> Unsubscribe([FromBody] SubscribeRequest request)
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var subject = UserService.Get(request.SubjectID);
             if (subject == null)
@@ -227,6 +249,12 @@ namespace SyndicateAPI.Controllers
                 profile.AvatarUrl = user.Avatar.Url;
 
             return profile;
+        }
+
+        private int RandomNumber()
+        {
+            Random random = new Random();
+            return random.Next(1000, 9999);
         }
     }
 }

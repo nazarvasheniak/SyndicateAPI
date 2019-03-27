@@ -64,7 +64,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var vehicle = new Vehicle
             {
@@ -100,7 +100,7 @@ namespace SyndicateAPI.Controllers
                     Message = "Vehicle ID invalid"
                 });
 
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var user = UserService.GetAll().FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
             if (vehicle.Owner != user)
                 return BadRequest(new ResponseModel
                 {
@@ -188,7 +188,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             if (vehicle.Owner != user)
                 return BadRequest(new ResponseModel
@@ -214,7 +214,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> GetVehicles()
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var vehicles = VehicleService.GetAll()
                 .Where(x => x.Owner == user)

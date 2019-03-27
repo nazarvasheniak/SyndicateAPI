@@ -40,7 +40,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> GetGroup()
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             if (user.Group == null)
                 return Ok(new ResponseModel
@@ -62,7 +62,7 @@ namespace SyndicateAPI.Controllers
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
             var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var group = GroupService.GetAll()
                 .FirstOrDefault(x => x.Name == request.Name);

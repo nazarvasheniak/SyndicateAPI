@@ -17,5 +17,17 @@ namespace SyndicateAPI.BusinessLogic.Services
 
             return await SMTPHelper.SendMail(message);
         }
+
+        public async Task<bool> SendChangeMessage(string to, int code)
+        {
+            var message = new SendMailModel
+            {
+                MailTo = to,
+                Subject = "[Syndicate] Активация",
+                Message = $"Подтвердите изменение Email.<br>Ваш код подтверждения: {code}"
+            };
+
+            return await SMTPHelper.SendMail(message);
+        }
     }
 }
