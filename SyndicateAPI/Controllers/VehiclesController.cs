@@ -21,19 +21,28 @@ namespace SyndicateAPI.Controllers
         private IVehicleService VehicleService { get; set; }
         private IVehicleClassService VehicleClassService { get; set; }
         private IVehicleCategoryService VehicleCategoryService { get; set; }
+        private IVehicleDriveService VehicleDriveService { get; set; }
+        private IVehicleTransmissionService VehicleTransmissionService { get; set; }
+        private IVehicleBodyService VehicleBodyService { get; set; }
 
         public VehiclesController([FromServices]
             IUserService userService,
             IFileService fileService,
             IVehicleService vehicleService,
             IVehicleClassService vehicleClassService,
-            IVehicleCategoryService vehicleCategoryService)
+            IVehicleCategoryService vehicleCategoryService,
+            IVehicleDriveService vehicleDriveService,
+            IVehicleTransmissionService vehicleTransmissionService,
+            IVehicleBodyService vehicleBodyService)
         {
             UserService = userService;
             FileService = fileService;
             VehicleService = vehicleService;
             VehicleClassService = vehicleClassService;
             VehicleCategoryService = vehicleCategoryService;
+            VehicleDriveService = vehicleDriveService;
+            VehicleTransmissionService = vehicleTransmissionService;
+            VehicleBodyService = vehicleBodyService
         }
 
         [HttpPost]
@@ -224,6 +233,108 @@ namespace SyndicateAPI.Controllers
             return Ok(new DataResponse<List<VehicleViewModel>>
             {
                 Data = vehicles
+            });
+        }
+
+        [HttpGet("classes")]
+        public async Task<IActionResult> GetVehicleClasses()
+        {
+            var classes = VehicleClassService.GetAll()
+                .Select(x => new VehicleClassViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<VehicleClassViewModel>>
+            {
+                Data = classes
+
+            });
+        }
+
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetVehicleCategories()
+        {
+            var categories = VehicleCategoryService.GetAll()
+                .Select(x => new VehicleCategoryViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<VehicleCategoryViewModel>>
+            {
+                Data = categories
+            });
+        }
+
+        [HttpGet("drives")]
+        public async Task<IActionResult> GetVehicleDrives()
+        {
+            var drives = VehicleDriveService.GetAll()
+                .Select(x => new VehicleDriveViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<VehicleDriveViewModel>>
+            {
+                Data = drives
+            });
+        }
+
+        [HttpGet("transmissions")]
+        public async Task<IActionResult> GetVehicleTransmissions()
+        {
+            var transmissions = VehicleTransmissionService.GetAll()
+                .Select(x => new VehicleTransmissionViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<VehicleTransmissionViewModel>>
+            {
+                Data = transmissions
+            });
+        }
+
+        [HttpGet("bodies")]
+        public async Task<IActionResult> GetVehicleBodies()
+        {
+            var bodies = VehicleBodyService.GetAll()
+                .Select(x => new VehicleBodyViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<VehicleBodyViewModel>>
+            {
+                Data = bodies
+            });
+        }
+
+        [HttpGet("properties")]
+        public async Task<IActionResult> GetVehicleProperties()
+        {
+            var classes = VehicleClassService.GetAll()
+                .Select(x => new VehicleClassViewModel(x))
+                .ToList();
+
+            var categories = VehicleCategoryService.GetAll()
+                .Select(x => new VehicleCategoryViewModel(x))
+                .ToList();
+
+            var drives = VehicleDriveService.GetAll()
+                .Select(x => new VehicleDriveViewModel(x))
+                .ToList();
+
+            var transmissions = VehicleTransmissionService.GetAll()
+                .Select(x => new VehicleTransmissionViewModel(x))
+                .ToList();
+
+            var bodies = VehicleBodyService.GetAll()
+                .Select(x => new VehicleBodyViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<VehicleProperties>
+            {
+                Data = new VehicleProperties
+                {
+                    Classes = classes,
+                    Categories = categories,
+                    Drives = drives,
+                    Transmissions = transmissions,
+                    Bodies = bodies
+                }
             });
         }
     }

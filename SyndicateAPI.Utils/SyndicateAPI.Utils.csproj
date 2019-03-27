@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Mail.dll" Version="3.0.19029.1200" />
+  </ItemGroup>
+
 </Project>

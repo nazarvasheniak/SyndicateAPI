@@ -7,6 +7,7 @@ using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
+using SyndicateAPI.Utils.Helpers;
 
 namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 {
@@ -35,6 +36,13 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             PersonService = personService;
             CityService = cityService;
             EmailService = emailService;
+        }
+
+        [HttpGet("test")]
+        public async Task<IActionResult> TestMail()
+        {
+            SMTPHelper.SendMailMX();
+            return Ok();
         }
 
         [HttpPost("reg")]
@@ -104,8 +112,20 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "Ошибка отправки активационного письма"
                 });
 
-            PersonService.Create(person);
-            UserService.Create(user);
+            try
+            {
+                PersonService.Create(person);
+                UserService.Create(user);
+            } catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Unique login exception"
+                });
+            }
 
             return Ok(new RegistrationResponse
             {
@@ -134,6 +154,32 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             user.IsActive = true;
             user.ActivationTime = DateTime.UtcNow;
             UserService.Update(user);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPost("activation/resend")]
+        public async Task<IActionResult> ResendActivation([FromBody] ResendActivationRequest request)
+        {
+            var user = UserService.Get(request.UserID);
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            if (user.IsActive)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User already activated"
+                });
+
+            user.ActivationCode = RandomNumber();
+            UserService.Update(user);
+
+            await EmailService.SendActivationMessage(user.Login, user.ActivationCode);
 
             return Ok(new ResponseModel());
         }
