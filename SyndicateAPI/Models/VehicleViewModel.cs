@@ -13,9 +13,9 @@ namespace SyndicateAPI.Models
         public FileViewModel Photo { get; set; }
         public VehicleClassViewModel Class { get; set; }
         public VehicleCategoryViewModel Category { get; set; }
-        public DriveType Drive { get; set; }
-        public TransmissionType Transmission { get; set; }
-        public BodyType Body { get; set; }
+        public VehicleDriveViewModel Drive { get; set; }
+        public VehicleTransmissionViewModel Transmission { get; set; }
+        public VehicleBodyViewModel Body { get; set; }
         public UserViewModel Owner { get; set; }
 
         public VehicleViewModel() { }
@@ -32,9 +32,9 @@ namespace SyndicateAPI.Models
                 Photo = new FileViewModel(vehicle.Photo);
                 Class = new VehicleClassViewModel(vehicle.Class);
                 Category = new VehicleCategoryViewModel(vehicle.Category);
-                Drive = vehicle.Drive;
-                Transmission = vehicle.Transmission;
-                Body = vehicle.Body;
+                Drive = new VehicleDriveViewModel(vehicle.Drive);
+                Transmission = new VehicleTransmissionViewModel(vehicle.Transmission);
+                Body = new VehicleBodyViewModel(vehicle.Body);
                 Owner = new UserViewModel(vehicle.Owner);
             }
         }

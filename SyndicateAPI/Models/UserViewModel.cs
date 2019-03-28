@@ -12,6 +12,7 @@ namespace SyndicateAPI.Models
         public FileViewModel Avatar { get; set; }
         public PersonViewModel Person { get; set; }
         public GroupViewModel Group { get; set; }
+        public bool IsOnline { get; set; }
 
         public UserViewModel() { }
 
@@ -26,6 +27,7 @@ namespace SyndicateAPI.Models
                 Avatar = new FileViewModel(user.Avatar);
                 Person = new PersonViewModel(user.Person);
                 Group = new GroupViewModel(user.Group);
+                IsOnline = user.IsOnline;
             }
         }
     }

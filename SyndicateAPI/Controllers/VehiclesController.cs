@@ -42,7 +42,7 @@ namespace SyndicateAPI.Controllers
             VehicleCategoryService = vehicleCategoryService;
             VehicleDriveService = vehicleDriveService;
             VehicleTransmissionService = vehicleTransmissionService;
-            VehicleBodyService = vehicleBodyService
+            VehicleBodyService = vehicleBodyService;
         }
 
         [HttpPost]
@@ -62,6 +62,30 @@ namespace SyndicateAPI.Controllers
                 {
                     Success = false,
                     Message = "Category ID invalid"
+                });
+
+            var vehicleDrive = VehicleDriveService.Get(request.DriveID);
+            if (vehicleDrive == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Drive ID invalid"
+                });
+
+            var vehicleTransmission = VehicleTransmissionService.Get(request.TransmissionID);
+            if (vehicleTransmission == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Transmission ID invalid"
+                });
+
+            var vehicleBody = VehicleBodyService.Get(request.BodyID);
+            if (vehicleTransmission == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Body ID invalid"
                 });
 
             var photo = FileService.Get(request.PhotoID);
@@ -84,9 +108,9 @@ namespace SyndicateAPI.Controllers
                 Photo = photo,
                 Class = vehicleClass,
                 Category = vehicleCategory,
-                Drive = request.Drive,
-                Transmission = request.Transmission,
-                Body = request.Body,
+                Drive = vehicleDrive,
+                Transmission = vehicleTransmission,
+                Body = vehicleBody,
                 Owner = user
             };
 
@@ -143,6 +167,45 @@ namespace SyndicateAPI.Controllers
                 vehicle.Category = vehicleCategory;
             }
 
+            if (request.DriveID != vehicle.Drive.ID)
+            {
+                var vehicleDrive = VehicleDriveService.Get(request.DriveID);
+                if (vehicleDrive == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Drive ID invalid"
+                    });
+
+                vehicle.Drive = vehicleDrive;
+            }
+
+            if (request.TransmissionID != vehicle.Transmission.ID)
+            {
+                var vehicleTransmission = VehicleTransmissionService.Get(request.TransmissionID);
+                if (vehicleTransmission == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Transmission ID invalid"
+                    });
+
+                vehicle.Transmission = vehicleTransmission;
+            }
+
+            if (request.BodyID != vehicle.Body.ID)
+            {
+                var vehicleBody = VehicleBodyService.Get(request.BodyID);
+                if (vehicleBody == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Body ID invalid"
+                    });
+
+                vehicle.Body = vehicleBody;
+            }
+
             if (request.PhotoID != vehicle.Photo.ID)
             {
                 var photo = FileService.Get(request.PhotoID);
@@ -167,15 +230,6 @@ namespace SyndicateAPI.Controllers
 
             if (request.Price != vehicle.Price)
                 vehicle.Price = request.Price;
-
-            if (request.Drive != vehicle.Drive)
-                vehicle.Drive = request.Drive;
-
-            if (request.Transmission != vehicle.Transmission)
-                vehicle.Transmission = request.Transmission;
-
-            if (request.Body != vehicle.Body)
-                vehicle.Body = request.Body;
 
             VehicleService.Update(vehicle);
 

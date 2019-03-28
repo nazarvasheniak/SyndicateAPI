@@ -22,7 +22,8 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.RegTime, "reg_time");
             Map(u => u.ActivationCode, "activation_code");
             Map(u => u.ActivationTime, "activation_time");
-            Map(u => u.IsActive, "is_active");
+            Map(u => u.IsActive, "is_active").Not.Nullable();
+            Map(u => u.IsOnline, "is_online").Not.Nullable();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

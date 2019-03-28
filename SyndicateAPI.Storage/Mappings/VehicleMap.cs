@@ -15,15 +15,15 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Photo, "id_photo");
             References(e => e.Class, "id_class");
             References(e => e.Category, "id_category");
+            References(e => e.Drive, "id_drive");
+            References(e => e.Transmission, "id_transmission");
+            References(e => e.Body, "id_body");
             References(e => e.Owner, "id_owner");
 
             Map(u => u.Model, "model");
             Map(u => u.Power, "power");
             Map(u => u.Year, "year");
             Map(u => u.Price, "price");
-            Map(u => u.Drive, "drive").CustomType<DriveType>();
-            Map(u => u.Transmission, "transmission").CustomType<TransmissionType>();
-            Map(u => u.Body, "body").CustomType<BodyType>();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

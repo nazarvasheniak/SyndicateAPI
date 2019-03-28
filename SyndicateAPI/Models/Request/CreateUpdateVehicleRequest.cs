@@ -31,12 +31,12 @@ namespace SyndicateAPI.Models.Request
         public long PhotoID { get; set; }
 
         [Required]
-        public DriveType Drive { get; set; }
+        public long DriveID { get; set; }
 
         [Required]
-        public TransmissionType Transmission { get; set; }
+        public long TransmissionID { get; set; }
 
         [Required]
-        public BodyType Body { get; set; }
+        public long BodyID { get; set; }
     }
 }
