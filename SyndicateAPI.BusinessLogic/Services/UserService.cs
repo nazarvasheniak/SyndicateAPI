@@ -51,14 +51,13 @@ namespace SyndicateAPI.BusinessLogic.Services
         private string GetSecurityToken(ClaimsIdentity identity)
         {
             var now = DateTime.UtcNow;
-            var expires = now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME));
 
             var jwt = new JwtSecurityToken(
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
                     notBefore: now,
                     claims: identity.Claims,
-                    expires: expires,
+                    expires: DateTime.MaxValue,
                     signingCredentials: new SigningCredentials(
                         AuthOptions.GetSymmetricSecurityKey(),
                         SecurityAlgorithms.HmacSha256)
