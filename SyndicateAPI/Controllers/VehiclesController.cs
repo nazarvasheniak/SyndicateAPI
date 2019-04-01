@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
@@ -96,6 +97,14 @@ namespace SyndicateAPI.Controllers
                     Message = "Photo ID invalid"
                 });
 
+            var confirmationPhoto = FileService.Get(request.ConfirmationPhotoID);
+            if (confirmationPhoto == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Confirmation photo ID invalid"
+                });
+
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
@@ -111,7 +120,9 @@ namespace SyndicateAPI.Controllers
                 Drive = vehicleDrive,
                 Transmission = vehicleTransmission,
                 Body = vehicleBody,
-                Owner = user
+                Owner = user,
+                ConfirmationPhoto = confirmationPhoto,
+                ApproveStatus = VehicleApproveStatus.NotApproved
             };
 
             VehicleService.Create(vehicle);
@@ -219,6 +230,19 @@ namespace SyndicateAPI.Controllers
                 vehicle.Photo = photo;
             }
 
+            if (request.ConfirmationPhotoID != vehicle.ConfirmationPhoto.ID)
+            {
+                var confirmationPhoto = FileService.Get(request.ConfirmationPhotoID);
+                if (confirmationPhoto == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Confirmation photo ID invalid"
+                    });
+
+                vehicle.ConfirmationPhoto = confirmationPhoto;
+            }
+
             if (request.Model != vehicle.Model)
                 vehicle.Model = request.Model;
 
@@ -230,6 +254,8 @@ namespace SyndicateAPI.Controllers
 
             if (request.Price != vehicle.Price)
                 vehicle.Price = request.Price;
+
+            vehicle.ApproveStatus = VehicleApproveStatus.NotApproved;
 
             VehicleService.Update(vehicle);
 

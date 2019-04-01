@@ -46,7 +46,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         }
 
         [HttpPost("reg")]
-        public async Task<IActionResult> Registration([FromBody] RegistrationRequest request)
+        public IActionResult Registration([FromBody] RegistrationRequest request)
         {
             // TO-DO: Вынести в сервис 
             var city = CityService.Get(request.CityID);
@@ -104,8 +104,10 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                 ActivationCode = RandomNumber()
             };
 
-            var activationMessage = await EmailService.SendActivationMessage(user.Login, user.ActivationCode);
-            if (!activationMessage)
+            var activationMessage = EmailService.SendActivationMessage(user.Login, user.ActivationCode);
+            activationMessage.Wait();
+
+            if (!activationMessage.Result)
                 return Ok(new ResponseModel
                 {
                     Success = false,

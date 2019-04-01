@@ -17,6 +17,8 @@ namespace SyndicateAPI.Models
         public VehicleTransmissionViewModel Transmission { get; set; }
         public VehicleBodyViewModel Body { get; set; }
         public UserViewModel Owner { get; set; }
+        public FileViewModel ConfirmationPhoto { get; set; }
+        public VehicleApproveStatus ApproveStatus { get; set; }
 
         public VehicleViewModel() { }
 
@@ -36,6 +38,8 @@ namespace SyndicateAPI.Models
                 Transmission = new VehicleTransmissionViewModel(vehicle.Transmission);
                 Body = new VehicleBodyViewModel(vehicle.Body);
                 Owner = new UserViewModel(vehicle.Owner);
+                ConfirmationPhoto = new FileViewModel(vehicle.ConfirmationPhoto);
+                ApproveStatus = vehicle.ApproveStatus;
             }
         }
     }

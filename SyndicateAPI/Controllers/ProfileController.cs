@@ -38,6 +38,7 @@ namespace SyndicateAPI.Controllers
         {
             UserService = userService;
             UserTempService = userTempService;
+            EmailService = emailService;
             PersonService = personService;
             RewardService = rewardService;
             CityService = cityService;

@@ -1,7 +1,4 @@
-﻿using Limilabs.Client.DNS;
-using Limilabs.Client.SMTP;
-using Limilabs.Mail;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
@@ -18,20 +15,7 @@ namespace SyndicateAPI.Utils.Helpers
 
         public static void SendMailMX()
         {
-            SmtpClient client = new SmtpClient
-            {
-                Host = "mx1.timeweb.ru",
-                Port = 25
-            };
-
-            MailMessage message = new MailMessage();
-            message.From = new MailAddress("zks@d-syndicate.ru");
-            message.To.Add(new MailAddress("nazar.vasheniak@gmail.com"));
-            message.Subject = "Syndicate Test";
-            message.IsBodyHtml = true;
-            message.Body = "Syndicate Test 123";
-
-            client.Send(message);
+            
         }
 
         /// <summary>

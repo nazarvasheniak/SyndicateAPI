@@ -2,6 +2,7 @@
 using SyndicateAPI.Domain;
 using SyndicateAPI.Storage.Interfaces;
 using System;
+using System.Data;
 using System.Linq;
 
 namespace SyndicateAPI.Storage.Repositories
@@ -92,7 +93,7 @@ namespace SyndicateAPI.Storage.Repositories
 
         protected ITransaction BeginTransaction(ISession session)
         {
-            return session.BeginTransaction();
+            return session.BeginTransaction(IsolationLevel.Serializable);
         }
     }
 }

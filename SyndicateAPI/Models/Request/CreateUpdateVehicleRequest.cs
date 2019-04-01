@@ -38,5 +38,8 @@ namespace SyndicateAPI.Models.Request
 
         [Required]
         public long BodyID { get; set; }
+
+        [Required]
+        public long ConfirmationPhotoID { get; set; }
     }
 }

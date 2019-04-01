@@ -19,11 +19,13 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Transmission, "id_transmission");
             References(e => e.Body, "id_body");
             References(e => e.Owner, "id_owner");
+            References(e => e.ConfirmationPhoto, "id_conf");
 
             Map(u => u.Model, "model");
             Map(u => u.Power, "power");
             Map(u => u.Year, "year");
             Map(u => u.Price, "price");
+            Map(u => u.ApproveStatus, "approve_status").CustomType<VehicleApproveStatus>();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
