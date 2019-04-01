@@ -19,6 +19,7 @@ namespace SyndicateAPI.Controllers
     {
         private IUserService UserService { get; set; }
         private IUserTempService UserTempService { get; set; }
+        private IFileService FileService { get; set; }
         private IEmailService EmailService { get; set; }
         private IPersonService PersonService { get; set; }
         private IRewardService RewardService { get; set; }
@@ -29,6 +30,7 @@ namespace SyndicateAPI.Controllers
         public ProfileController([FromServices]
             IUserService userService,
             IUserTempService userTempService,
+            IFileService fileService,
             IEmailService emailService,
             IPersonService personService,
             IRewardService rewardService,
@@ -38,6 +40,7 @@ namespace SyndicateAPI.Controllers
         {
             UserService = userService;
             UserTempService = userTempService;
+            FileService = fileService;
             EmailService = emailService;
             PersonService = personService;
             RewardService = rewardService;
@@ -105,6 +108,19 @@ namespace SyndicateAPI.Controllers
                     });
 
                 user.Person.City = city;
+            }
+
+            if (request.AvatarID != 0 && !request.AvatarID.Equals(user.Avatar.ID))
+            {
+                var avatar = FileService.Get(request.AvatarID);
+                if (avatar == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Avatar error"
+                    });
+
+                user.Avatar = avatar;
             }
 
             if (request.Biography != null && !request.Biography.Equals(user.Person.Biography))
