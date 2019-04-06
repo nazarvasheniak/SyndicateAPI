@@ -14,7 +14,6 @@ namespace SyndicateAPI.Controllers
 {
     [Route("api/vehicles")]
     [ApiController]
-    [Authorize]
     public class VehiclesController : Controller
     {
         private IUserService UserService { get; set; }
@@ -46,7 +45,84 @@ namespace SyndicateAPI.Controllers
             VehicleBodyService = vehicleBodyService;
         }
 
+        [HttpPost("createStartData")]
+        public async Task<IActionResult> CreateStartData()
+        {
+            var categories = new List<VehicleCategory>()
+            {
+                new VehicleCategory { Title = "Жоповоз" },
+                new VehicleCategory { Title = "Стиль" },
+                new VehicleCategory { Title = "Дрифт" },
+                new VehicleCategory { Title = "Драг" },
+                new VehicleCategory { Title = "Ведро" },
+                new VehicleCategory { Title = "Оффроад" },
+                new VehicleCategory { Title = "Бусик" },
+                new VehicleCategory { Title = "Ралли" },
+                new VehicleCategory { Title = "Дерби" },
+                new VehicleCategory { Title = "Мото" }
+            };
+
+            foreach (var category in categories)
+                VehicleCategoryService.Create(category);
+
+            var drives = new List<VehicleDrive>()
+            {
+                new VehicleDrive { Title = "Отсутствует" },
+                new VehicleDrive { Title = "Передний" },
+                new VehicleDrive { Title = "Задний" },
+                new VehicleDrive { Title = "Полный" }
+            };
+
+            foreach (var drive in drives)
+                VehicleDriveService.Create(drive);
+
+            var transmissions = new List<VehicleTransmission>()
+            {
+                new VehicleTransmission { Title = "Отсутствует" },
+                new VehicleTransmission { Title = "Механическая" },
+                new VehicleTransmission { Title = "Автоматизированная" },
+                new VehicleTransmission { Title = "Роботизированная" },
+                new VehicleTransmission { Title = "Вариаторная" }
+            };
+
+            foreach (var transmission in transmissions)
+                VehicleTransmissionService.Create(transmission);
+
+            var bodies = new List<VehicleBody>()
+            {
+                new VehicleBody { Title = "Отсутствует" },
+                new VehicleBody { Title = "Седан" },
+                new VehicleBody { Title = "Универсал" },
+                new VehicleBody { Title = "Хэтчбэк" },
+                new VehicleBody { Title = "Купе" },
+                new VehicleBody { Title = "Лимузин" },
+                new VehicleBody { Title = "Микроавтобус" },
+                new VehicleBody { Title = "Минивэн" },
+                new VehicleBody { Title = "Хардтоп" },
+                new VehicleBody { Title = "Таун-Кар" },
+                new VehicleBody { Title = "Комби" },
+                new VehicleBody { Title = "Лифтбэк" },
+                new VehicleBody { Title = "Фастбэк" },
+                new VehicleBody { Title = "Кабриолет" },
+                new VehicleBody { Title = "Родстер" },
+                new VehicleBody { Title = "Фаэтон" },
+                new VehicleBody { Title = "Ландо" },
+                new VehicleBody { Title = "Брогам" },
+                new VehicleBody { Title = "Тарга" },
+                new VehicleBody { Title = "Спайдер" },
+                new VehicleBody { Title = "Шутингбрейк" },
+                new VehicleBody { Title = "Пикап" },
+                new VehicleBody { Title = "Фургон" }
+            };
+
+            foreach (var body in bodies)
+                VehicleBodyService.Create(body);
+
+            return Ok(new ResponseModel());
+        }
+
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateVehicle([FromBody] CreateUpdateVehicleRequest request)
         {
             var vehicleCategory = VehicleCategoryService.Get(request.CategoryID);
@@ -149,6 +225,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateVehicle([FromBody] CreateUpdateVehicleRequest request, long id)
         {
             var vehicle = VehicleService.Get(id);
@@ -277,6 +354,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteVehicle(long id)
         {
             var vehicle = VehicleService.Get(id);
@@ -311,6 +389,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetVehicles()
         {
             var user = UserService.GetAll()
@@ -337,6 +416,7 @@ namespace SyndicateAPI.Controllers
         }
         
         [HttpGet("categories")]
+        [Authorize]
         public async Task<IActionResult> GetVehicleCategories()
         {
             var categories = VehicleCategoryService.GetAll()
@@ -350,6 +430,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("drives")]
+        [Authorize]
         public async Task<IActionResult> GetVehicleDrives()
         {
             var drives = VehicleDriveService.GetAll()
@@ -363,6 +444,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("transmissions")]
+        [Authorize]
         public async Task<IActionResult> GetVehicleTransmissions()
         {
             var transmissions = VehicleTransmissionService.GetAll()
@@ -376,6 +458,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("bodies")]
+        [Authorize]
         public async Task<IActionResult> GetVehicleBodies()
         {
             var bodies = VehicleBodyService.GetAll()
@@ -389,6 +472,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("properties")]
+        [Authorize]
         public async Task<IActionResult> GetVehicleProperties()
         {
             var categories = VehicleCategoryService.GetAll()
