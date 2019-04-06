@@ -20,7 +20,6 @@ namespace SyndicateAPI.Controllers
         private IUserService UserService { get; set; }
         private IFileService FileService { get; set; }
         private IVehicleService VehicleService { get; set; }
-        private IVehicleClassService VehicleClassService { get; set; }
         private IVehicleCategoryService VehicleCategoryService { get; set; }
         private IVehicleDriveService VehicleDriveService { get; set; }
         private IVehicleTransmissionService VehicleTransmissionService { get; set; }
@@ -30,7 +29,6 @@ namespace SyndicateAPI.Controllers
             IUserService userService,
             IFileService fileService,
             IVehicleService vehicleService,
-            IVehicleClassService vehicleClassService,
             IVehicleCategoryService vehicleCategoryService,
             IVehicleDriveService vehicleDriveService,
             IVehicleTransmissionService vehicleTransmissionService,
@@ -39,7 +37,6 @@ namespace SyndicateAPI.Controllers
             UserService = userService;
             FileService = fileService;
             VehicleService = vehicleService;
-            VehicleClassService = vehicleClassService;
             VehicleCategoryService = vehicleCategoryService;
             VehicleDriveService = vehicleDriveService;
             VehicleTransmissionService = vehicleTransmissionService;
@@ -49,14 +46,6 @@ namespace SyndicateAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateVehicle([FromBody] CreateUpdateVehicleRequest request)
         {
-            var vehicleClass = VehicleClassService.Get(request.ClassID);
-            if (vehicleClass == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Class ID invalid"
-                });
-
             var vehicleCategory = VehicleCategoryService.Get(request.CategoryID);
             if (vehicleCategory == null)
                 return BadRequest(new ResponseModel
@@ -115,7 +104,6 @@ namespace SyndicateAPI.Controllers
                 Year = request.Year,
                 Price = request.Price,
                 Photo = photo,
-                Class = vehicleClass,
                 Category = vehicleCategory,
                 Drive = vehicleDrive,
                 Transmission = vehicleTransmission,
@@ -151,19 +139,6 @@ namespace SyndicateAPI.Controllers
                     Success = false,
                     Message = "You are not owner of this vehicle"
                 });
-
-            if (request.ClassID != vehicle.Class.ID)
-            {
-                var vehicleClass = VehicleClassService.Get(request.ClassID);
-                if (vehicleClass == null)
-                    return BadRequest(new ResponseModel
-                    {
-                        Success = false,
-                        Message = "Class ID invalid"
-                    });
-
-                vehicle.Class = vehicleClass;
-            }
 
             if (request.CategoryID != vehicle.Category.ID)
             {
@@ -315,21 +290,7 @@ namespace SyndicateAPI.Controllers
                 Data = vehicles
             });
         }
-
-        [HttpGet("classes")]
-        public async Task<IActionResult> GetVehicleClasses()
-        {
-            var classes = VehicleClassService.GetAll()
-                .Select(x => new VehicleClassViewModel(x))
-                .ToList();
-
-            return Ok(new DataResponse<List<VehicleClassViewModel>>
-            {
-                Data = classes
-
-            });
-        }
-
+        
         [HttpGet("categories")]
         public async Task<IActionResult> GetVehicleCategories()
         {
@@ -385,10 +346,6 @@ namespace SyndicateAPI.Controllers
         [HttpGet("properties")]
         public async Task<IActionResult> GetVehicleProperties()
         {
-            var classes = VehicleClassService.GetAll()
-                .Select(x => new VehicleClassViewModel(x))
-                .ToList();
-
             var categories = VehicleCategoryService.GetAll()
                 .Select(x => new VehicleCategoryViewModel(x))
                 .ToList();
@@ -409,7 +366,6 @@ namespace SyndicateAPI.Controllers
             {
                 Data = new VehicleProperties
                 {
-                    Classes = classes,
                     Categories = categories,
                     Drives = drives,
                     Transmissions = transmissions,

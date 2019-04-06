@@ -11,7 +11,6 @@ namespace SyndicateAPI.Models
         public int Year { get; set; }
         public decimal Price { get; set; }
         public FileViewModel Photo { get; set; }
-        public VehicleClassViewModel Class { get; set; }
         public VehicleCategoryViewModel Category { get; set; }
         public VehicleDriveViewModel Drive { get; set; }
         public VehicleTransmissionViewModel Transmission { get; set; }
@@ -32,7 +31,6 @@ namespace SyndicateAPI.Models
                 Year = vehicle.Year;
                 Price = vehicle.Price;
                 Photo = new FileViewModel(vehicle.Photo);
-                Class = new VehicleClassViewModel(vehicle.Class);
                 Category = new VehicleCategoryViewModel(vehicle.Category);
                 Drive = new VehicleDriveViewModel(vehicle.Drive);
                 Transmission = new VehicleTransmissionViewModel(vehicle.Transmission);

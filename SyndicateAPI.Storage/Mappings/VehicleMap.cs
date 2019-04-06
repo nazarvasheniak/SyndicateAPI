@@ -13,7 +13,6 @@ namespace SyndicateAPI.Storage.Mappings
             Id(u => u.ID, "id");
 
             References(e => e.Photo, "id_photo");
-            References(e => e.Class, "id_class");
             References(e => e.Category, "id_category");
             References(e => e.Drive, "id_drive");
             References(e => e.Transmission, "id_transmission");

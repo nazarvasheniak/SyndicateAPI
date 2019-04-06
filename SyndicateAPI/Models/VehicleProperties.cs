@@ -7,7 +7,6 @@ namespace SyndicateAPI.Models
 {
     public class VehicleProperties
     {
-        public List<VehicleClassViewModel> Classes { get; set; }
         public List<VehicleCategoryViewModel> Categories { get; set; }
         public List<VehicleDriveViewModel> Drives { get; set; }
         public List<VehicleTransmissionViewModel> Transmissions { get; set; }

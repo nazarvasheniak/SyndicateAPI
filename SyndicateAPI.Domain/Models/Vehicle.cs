@@ -10,7 +10,6 @@ namespace SyndicateAPI.Domain.Models
         public virtual int Year { get; set; }
         public virtual decimal Price { get; set; }
         public virtual File Photo { get; set; }
-        public virtual VehicleClass Class { get; set; }
         public virtual VehicleCategory Category { get; set; }
         public virtual VehicleDrive Drive { get; set; }
         public virtual VehicleTransmission Transmission { get; set; }
