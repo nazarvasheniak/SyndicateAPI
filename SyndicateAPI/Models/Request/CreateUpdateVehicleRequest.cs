@@ -10,9 +10,6 @@ namespace SyndicateAPI.Models.Request
     public class CreateUpdateVehicleRequest
     {
         [Required]
-        public long ClassID { get; set; }
-
-        [Required]
         public long CategoryID { get; set; }
 
         [Required]
