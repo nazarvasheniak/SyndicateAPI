@@ -23,6 +23,8 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.PublishTime, "publish_time");
             Map(u => u.IsPublished, "is_published").Not.Nullable();
             Map(u => u.Type, "type").CustomType<PostType>();
+            Map(u => u.Latitude, "latitude");
+            Map(u => u.Longitude, "longtitude");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

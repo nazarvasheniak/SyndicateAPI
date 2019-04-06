@@ -14,6 +14,7 @@ namespace SyndicateAPI.Models
         public UserViewModel Author { get; set; }
         public PostType Type { get; set; }
         public bool IsPublished { get; set; }
+        public CoordinatesViewModel Coordinates { get; set; }
 
         public PostViewModel() { }
 
@@ -29,6 +30,7 @@ namespace SyndicateAPI.Models
                 Author = new UserViewModel(post.Author);
                 Type = post.Type;
                 IsPublished = post.IsPublished;
+                Coordinates = new CoordinatesViewModel(post.Latitude, post.Longitude);
             }
         }
     }

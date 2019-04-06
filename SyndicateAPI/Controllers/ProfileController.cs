@@ -97,7 +97,7 @@ namespace SyndicateAPI.Controllers
             if (request.Nickname != null && !request.Nickname.Equals(user.Nickname))
                 user.Nickname = request.Nickname;
 
-            if (request.CityID != 0 && !request.CityID.Equals(user.Person.City.ID))
+            if (request.CityID != 0 && request.CityID != user.Person.City.ID)
             {
                 var city = CityService.Get(request.CityID);
                 if (city == null)
@@ -110,17 +110,20 @@ namespace SyndicateAPI.Controllers
                 user.Person.City = city;
             }
 
-            if (request.AvatarID != 0 && !request.AvatarID.Equals(user.Avatar.ID))
+            if (request.AvatarID != 0)
             {
-                var avatar = FileService.Get(request.AvatarID);
-                if (avatar == null)
-                    return BadRequest(new ResponseModel
-                    {
-                        Success = false,
-                        Message = "Avatar error"
-                    });
+                if (user.Avatar == null || request.AvatarID != user.Avatar.ID)
+                {
+                    var avatar = FileService.Get(request.AvatarID);
+                    if (avatar == null)
+                        return BadRequest(new ResponseModel
+                        {
+                            Success = false,
+                            Message = "Avatar error"
+                        });
 
-                user.Avatar = avatar;
+                    user.Avatar = avatar;
+                }
             }
 
             if (request.Biography != null && !request.Biography.Equals(user.Person.Biography))

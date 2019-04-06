@@ -15,6 +15,8 @@ namespace SyndicateAPI.Domain.Models
         public virtual User Author { get; set; }
         public virtual PostType Type { get; set; }
         public virtual bool IsPublished { get; set; }
+        public virtual double Latitude { get; set; }
+        public virtual double Longitude { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }
