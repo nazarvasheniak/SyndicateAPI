@@ -38,13 +38,6 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             EmailService = emailService;
         }
 
-        [HttpGet("test")]
-        public async Task<IActionResult> TestMail()
-        {
-            SMTPHelper.SendMailMX();
-            return Ok();
-        }
-
         [HttpPost("reg")]
         public IActionResult Registration([FromBody] RegistrationRequest request)
         {

@@ -9,7 +9,8 @@ namespace SyndicateAPI.Domain.Enums
         BMP = 3,
         AVI = 4,
         MP4 = 5,
-        TXT = 6,
-        PDF = 7
+        MOV = 6,
+        TXT = 7,
+        PDF = 8
     }
 }

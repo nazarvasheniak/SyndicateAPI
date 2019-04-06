@@ -52,22 +52,22 @@ namespace SyndicateAPI.Controllers
                 System.IO.Directory.CreateDirectory(dir);
 
             filename = $"{(now.Hour.ToString() + now.Minute.ToString() + now.Second.ToString() + now.Millisecond.ToString()).Replace(" ", "").Replace(".", "").Replace(":", "")}";
-            if (request.Type == FileType.JPEG)
-            {
+            if (request.Type.Equals(FileType.JPEG))
                 filename += ".jpg";
-            }
-            else if (request.Type == FileType.PNG)
-            {
+            else if (request.Type.Equals(FileType.PNG))
                 filename += ".png";
-            }
+            else if (request.Type.Equals(FileType.AVI))
+                filename += ".avi";
+            else if (request.Type.Equals(FileType.MP4))
+                filename += ".mp4";
+            else if (request.Type.Equals(FileType.MOV))
+                filename += ".mov";
             else
-            {
                 return Json(new ResponseModel
                 {
                     Success = false,
                     Message = "Тип файла не поддерживается"
                 });
-            }
 
             path = System.IO.Path.Combine(dir, filename);
             System.IO.Stream stream = System.IO.File.Create(path);
