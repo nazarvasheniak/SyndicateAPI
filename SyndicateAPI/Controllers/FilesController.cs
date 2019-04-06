@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +38,73 @@ namespace SyndicateAPI.Controllers
             return Ok(new DataResponse<FileViewModel>
             {
                 Data = new FileViewModel(file)
+            });
+        }
+
+        [HttpPost("list")]
+        public async Task<IActionResult> UploadFileList([FromBody] UploadFileListRequest request)
+        {
+            var now = DateTime.Now;
+            string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString(), now.Day.ToString());
+            string filename = string.Empty;
+            string path = string.Empty;
+
+            if (!System.IO.Directory.Exists(dir))
+                System.IO.Directory.CreateDirectory(dir);
+
+            var toCreate = new List<File>();
+            var response = new List<long>();
+
+            foreach (var f in request.FileList)
+            {
+                filename = $"{(now.Hour.ToString() + now.Minute.ToString() + now.Second.ToString() + now.Millisecond.ToString()).Replace(" ", "").Replace(".", "").Replace(":", "")}";
+                if (f.Type.Equals(FileType.JPEG))
+                    filename += ".jpg";
+                else if (f.Type.Equals(FileType.PNG))
+                    filename += ".png";
+                else if (f.Type.Equals(FileType.AVI))
+                    filename += ".avi";
+                else if (f.Type.Equals(FileType.MP4))
+                    filename += ".mp4";
+                else if (f.Type.Equals(FileType.MOV))
+                    filename += ".mov";
+                else
+                    return Json(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Тип одного или нескольких файлов не поддерживается"
+                    });
+
+                path = System.IO.Path.Combine(dir, filename);
+                System.IO.Stream stream = System.IO.File.Create(path);
+
+                foreach (var byte1 in f.Base64)
+                {
+                    stream.WriteByte(byte1);
+                }
+
+                stream.Close();
+
+                var file = new File
+                {
+                    Name = filename,
+                    Type = f.Type,
+                    LocalPath = path,
+                    Url = $"http://185.159.82.174/files/{now.Month.ToString()}/{now.Day.ToString()}/{filename}"
+                };
+
+                toCreate.Add(file);
+            }
+
+            foreach (var toCreateFile in toCreate)
+            {
+                FileService.Create(toCreateFile);
+                response.Add(toCreateFile.ID);
+            }
+
+            return Ok(new UploadFileListResponse
+            {
+                FileIDList = response
             });
         }
 
