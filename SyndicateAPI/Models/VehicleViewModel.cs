@@ -1,5 +1,7 @@
 ﻿using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SyndicateAPI.Models
 {
@@ -10,7 +12,7 @@ namespace SyndicateAPI.Models
         public int Power { get; set; }
         public int Year { get; set; }
         public decimal Price { get; set; }
-        public FileViewModel Photo { get; set; }
+        public List<VehiclePhotoViewModel> Photos { get; set; }
         public VehicleCategoryViewModel Category { get; set; }
         public VehicleDriveViewModel Drive { get; set; }
         public VehicleTransmissionViewModel Transmission { get; set; }
@@ -30,7 +32,6 @@ namespace SyndicateAPI.Models
                 Power = vehicle.Power;
                 Year = vehicle.Year;
                 Price = vehicle.Price;
-                Photo = new FileViewModel(vehicle.Photo);
                 Category = new VehicleCategoryViewModel(vehicle.Category);
                 Drive = new VehicleDriveViewModel(vehicle.Drive);
                 Transmission = new VehicleTransmissionViewModel(vehicle.Transmission);
@@ -38,6 +39,26 @@ namespace SyndicateAPI.Models
                 Owner = new UserViewModel(vehicle.Owner);
                 ConfirmationPhoto = new FileViewModel(vehicle.ConfirmationPhoto);
                 ApproveStatus = vehicle.ApproveStatus;
+            }
+        }
+
+        public VehicleViewModel(Vehicle vehicle, IEnumerable<VehiclePhoto> vehiclePhotos)
+        {
+            if (vehicle != null)
+            {
+                ID = vehicle.ID;
+                Model = vehicle.Model;
+                Power = vehicle.Power;
+                Year = vehicle.Year;
+                Price = vehicle.Price;
+                Category = new VehicleCategoryViewModel(vehicle.Category);
+                Drive = new VehicleDriveViewModel(vehicle.Drive);
+                Transmission = new VehicleTransmissionViewModel(vehicle.Transmission);
+                Body = new VehicleBodyViewModel(vehicle.Body);
+                Owner = new UserViewModel(vehicle.Owner);
+                ConfirmationPhoto = new FileViewModel(vehicle.ConfirmationPhoto);
+                ApproveStatus = vehicle.ApproveStatus;
+                Photos = vehiclePhotos.Select(x => new VehiclePhotoViewModel(x)).ToList();
             }
         }
     }

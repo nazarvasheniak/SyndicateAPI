@@ -25,7 +25,7 @@ namespace SyndicateAPI.Models.Request
         public decimal Price { get; set; }
 
         [Required]
-        public long PhotoID { get; set; }
+        public List<long> PhotoList { get; set; }
 
         [Required]
         public long DriveID { get; set; }

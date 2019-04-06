@@ -20,6 +20,7 @@ namespace SyndicateAPI.Controllers
         private IUserService UserService { get; set; }
         private IFileService FileService { get; set; }
         private IVehicleService VehicleService { get; set; }
+        private IVehiclePhotoService VehiclePhotoService { get; set; }
         private IVehicleCategoryService VehicleCategoryService { get; set; }
         private IVehicleDriveService VehicleDriveService { get; set; }
         private IVehicleTransmissionService VehicleTransmissionService { get; set; }
@@ -29,6 +30,7 @@ namespace SyndicateAPI.Controllers
             IUserService userService,
             IFileService fileService,
             IVehicleService vehicleService,
+            IVehiclePhotoService vehiclePhotoService,
             IVehicleCategoryService vehicleCategoryService,
             IVehicleDriveService vehicleDriveService,
             IVehicleTransmissionService vehicleTransmissionService,
@@ -37,6 +39,7 @@ namespace SyndicateAPI.Controllers
             UserService = userService;
             FileService = fileService;
             VehicleService = vehicleService;
+            VehiclePhotoService = vehiclePhotoService;
             VehicleCategoryService = vehicleCategoryService;
             VehicleDriveService = vehicleDriveService;
             VehicleTransmissionService = vehicleTransmissionService;
@@ -78,14 +81,6 @@ namespace SyndicateAPI.Controllers
                     Message = "Body ID invalid"
                 });
 
-            var photo = FileService.Get(request.PhotoID);
-            if (photo == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Photo ID invalid"
-                });
-
             var confirmationPhoto = FileService.Get(request.ConfirmationPhotoID);
             if (confirmationPhoto == null)
                 return BadRequest(new ResponseModel
@@ -103,7 +98,6 @@ namespace SyndicateAPI.Controllers
                 Power = request.Power,
                 Year = request.Year,
                 Price = request.Price,
-                Photo = photo,
                 Category = vehicleCategory,
                 Drive = vehicleDrive,
                 Transmission = vehicleTransmission,
@@ -115,9 +109,42 @@ namespace SyndicateAPI.Controllers
 
             VehicleService.Create(vehicle);
 
+            if (request.PhotoList != null && request.PhotoList.Count != 0)
+            {
+                if (request.PhotoList.Count > 10)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Max photo count is 10"
+                    });
+
+                foreach (var photoID in request.PhotoList)
+                {
+                    var file = FileService.Get(photoID);
+                    if (file == null)
+                        return BadRequest(new ResponseModel
+                        {
+                            Success = false,
+                            Message = "Photo ID invalid"
+                        });
+
+                    var photo = new VehiclePhoto
+                    {
+                        Photo = file,
+                        Vehicle = vehicle
+                    };
+
+                    VehiclePhotoService.Create(photo);
+                }
+            }
+
+            var photos = VehiclePhotoService.GetAll()
+                .Where(x => x.Vehicle == vehicle)
+                .ToList();
+
             return Ok(new DataResponse<VehicleViewModel>
             {
-                Data = new VehicleViewModel(vehicle)
+                Data = new VehicleViewModel(vehicle, photos)
             });
         }
 
@@ -192,18 +219,27 @@ namespace SyndicateAPI.Controllers
                 vehicle.Body = vehicleBody;
             }
 
-            if (request.PhotoID != vehicle.Photo.ID)
-            {
-                var photo = FileService.Get(request.PhotoID);
-                if (photo == null)
-                    return BadRequest(new ResponseModel
-                    {
-                        Success = false,
-                        Message = "Photo ID invalid"
-                    });
+            //if (request.PhotoList != null && request.PhotoList.Count != 0)
+            //{
+            //    foreach (var photoID in request.PhotoList)
+            //    {
+            //        var file = FileService.Get(photoID);
+            //        if (file == null)
+            //            return BadRequest(new ResponseModel
+            //            {
+            //                Success = false,
+            //                Message = "Photo ID invalid"
+            //            });
 
-                vehicle.Photo = photo;
-            }
+            //        var photo = new VehiclePhoto
+            //        {
+            //            Photo = file,
+            //            Vehicle = vehicle
+            //        };
+
+            //        VehiclePhotoService.Create(photo);
+            //    }
+            //}
 
             if (request.ConfirmationPhotoID != vehicle.ConfirmationPhoto.ID)
             {
@@ -282,12 +318,21 @@ namespace SyndicateAPI.Controllers
 
             var vehicles = VehicleService.GetAll()
                 .Where(x => x.Owner == user)
-                .Select(x => new VehicleViewModel(x))
                 .ToList();
+
+            var data = new List<VehicleViewModel>();
+            foreach (var vehicle in vehicles)
+            {
+                var photos = VehiclePhotoService.GetAll()
+                    .Where(x => x.Vehicle == vehicle)
+                    .ToList();
+
+                data.Add(new VehicleViewModel(vehicle, photos));
+            }
 
             return Ok(new DataResponse<List<VehicleViewModel>>
             {
-                Data = vehicles
+                Data = data
             });
         }
         
