@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,14 @@ namespace SyndicateAPI.Controllers
     public class FilesController : Controller
     {
         private IFileService FileService { get; set; }
+        private IUserService UserService { get; set; }
 
-        public FilesController([FromServices] IFileService fileService)
+        public FilesController([FromServices]
+            IFileService fileService,
+            IUserService userService)
         {
             FileService = fileService;
+            UserService = userService;
         }
 
         [HttpGet("{id}")]
@@ -44,7 +49,7 @@ namespace SyndicateAPI.Controllers
         [HttpPost("list")]
         public async Task<IActionResult> UploadFileList([FromBody] UploadFileListRequest request)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             string dir = System.IO.Path.Combine("/var", "www", "html", "files", now.Month.ToString(), now.Day.ToString());
             string filename = string.Empty;
             string path = string.Empty;
@@ -57,7 +62,8 @@ namespace SyndicateAPI.Controllers
 
             foreach (var f in request.FileList)
             {
-                filename = $"{(now.Hour.ToString() + now.Minute.ToString() + now.Second.ToString() + now.Millisecond.ToString()).Replace(" ", "").Replace(".", "").Replace(":", "")}";
+                var now2 = DateTime.UtcNow;
+                filename = $"{(now2.Hour.ToString() + now2.Minute.ToString() + now2.Second.ToString() + now2.Millisecond.ToString()).Replace(" ", "").Replace(".", "").Replace(":", "")}";
                 if (f.Type.Equals(FileType.JPEG))
                     filename += ".jpg";
                 else if (f.Type.Equals(FileType.PNG))

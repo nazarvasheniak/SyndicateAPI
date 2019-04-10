@@ -41,6 +41,23 @@ namespace SyndicateAPI.Controllers
             UserSubscriptionService = userSubscriptionService;
         }
 
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyPosts()
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var posts = PostService.GetAll()
+                .Where(x => x.Author == user && x.IsPublished && x.Type == PostType.User)
+                .Select(x => new PostViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<PostViewModel>>
+            {
+                Data = posts
+            });
+        }
+
         [HttpGet("user")]
         public async Task<IActionResult> GetUserFeed()
         {

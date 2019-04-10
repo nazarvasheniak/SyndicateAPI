@@ -12,7 +12,7 @@ namespace SyndicateAPI.Models
         public int Power { get; set; }
         public int Year { get; set; }
         public decimal Price { get; set; }
-        public List<VehiclePhotoViewModel> Photos { get; set; }
+        public List<FileViewModel> Photos { get; set; }
         public VehicleCategoryViewModel Category { get; set; }
         public VehicleDriveViewModel Drive { get; set; }
         public VehicleTransmissionViewModel Transmission { get; set; }
@@ -58,7 +58,7 @@ namespace SyndicateAPI.Models
                 Owner = new UserViewModel(vehicle.Owner);
                 ConfirmationPhoto = new FileViewModel(vehicle.ConfirmationPhoto);
                 ApproveStatus = vehicle.ApproveStatus;
-                Photos = vehiclePhotos.Select(x => new VehiclePhotoViewModel(x)).ToList();
+                Photos = vehiclePhotos.Select(x => new FileViewModel(x.Photo)).ToList();
             }
         }
     }

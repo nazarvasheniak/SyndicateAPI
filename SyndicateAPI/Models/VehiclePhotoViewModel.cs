@@ -18,7 +18,6 @@ namespace SyndicateAPI.Models
         {
             ID = vehiclePhoto.ID;
             Photo = new FileViewModel(vehiclePhoto.Photo);
-            Vehicle = new VehicleViewModel(vehiclePhoto.Vehicle);
         }
     }
 }

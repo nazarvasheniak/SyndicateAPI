@@ -296,27 +296,34 @@ namespace SyndicateAPI.Controllers
                 vehicle.Body = vehicleBody;
             }
 
-            //if (request.PhotoList != null && request.PhotoList.Count != 0)
-            //{
-            //    foreach (var photoID in request.PhotoList)
-            //    {
-            //        var file = FileService.Get(photoID);
-            //        if (file == null)
-            //            return BadRequest(new ResponseModel
-            //            {
-            //                Success = false,
-            //                Message = "Photo ID invalid"
-            //            });
+            if (request.PhotoList != null && request.PhotoList.Count != 0)
+            {
+                var existPhotos = VehiclePhotoService.GetAll()
+                    .Where(x => x.Vehicle == vehicle)
+                    .ToList();
+                
+                foreach (var photo in existPhotos)
+                    VehiclePhotoService.Delete(photo);
 
-            //        var photo = new VehiclePhoto
-            //        {
-            //            Photo = file,
-            //            Vehicle = vehicle
-            //        };
+                foreach (var photoID in request.PhotoList)
+                {
+                    var file = FileService.Get(photoID);
+                    if (file == null)
+                        return BadRequest(new ResponseModel
+                        {
+                            Success = false,
+                            Message = "Photo ID invalid"
+                        });
 
-            //        VehiclePhotoService.Create(photo);
-            //    }
-            //}
+                    var photo = new VehiclePhoto
+                    {
+                        Photo = file,
+                        Vehicle = vehicle
+                    };
+
+                    VehiclePhotoService.Create(photo);
+                }
+            }
 
             if (request.ConfirmationPhotoID != vehicle.ConfirmationPhoto.ID)
             {
@@ -347,9 +354,13 @@ namespace SyndicateAPI.Controllers
 
             VehicleService.Update(vehicle);
 
+            var photos = VehiclePhotoService.GetAll()
+                .Where(x => x.Vehicle == vehicle)
+                .ToList();
+
             return Ok(new DataResponse<VehicleViewModel>
             {
-                Data = new VehicleViewModel(vehicle)
+                Data = new VehicleViewModel(vehicle, photos)
             });
         }
 

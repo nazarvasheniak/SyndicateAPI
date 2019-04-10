@@ -25,6 +25,7 @@ namespace SyndicateAPI.Controllers
         private IRewardService RewardService { get; set; }
         private ICityService CityService { get; set; }
         private IVehicleService VehicleService { get; set; }
+        private IVehiclePhotoService VehiclePhotoService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
 
         public ProfileController([FromServices]
@@ -36,6 +37,7 @@ namespace SyndicateAPI.Controllers
             IRewardService rewardService,
             ICityService cityService,
             IVehicleService vehicleService,
+            IVehiclePhotoService vehiclePhotoService,
             IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
@@ -46,6 +48,7 @@ namespace SyndicateAPI.Controllers
             RewardService = rewardService;
             CityService = cityService;
             VehicleService = vehicleService;
+            VehiclePhotoService = vehiclePhotoService;
             UserSubscriptionService = userSubscriptionService;
         }
 
@@ -246,8 +249,18 @@ namespace SyndicateAPI.Controllers
         {
             var vehicles = VehicleService.GetAll()
                 .Where(x => x.Owner == user)
-                .Select(x => new VehicleViewModel(x))
                 .ToList();
+
+            var viewVehicles = new List<VehicleViewModel>();
+
+            foreach (var vehicle in vehicles)
+            {
+                var photos = VehiclePhotoService.GetAll()
+                    .Where(x => x.Vehicle == vehicle)
+                    .ToList();
+
+                viewVehicles.Add(new VehicleViewModel(vehicle, photos));
+            }
 
             var profile = new ProfileViewModel
             {
@@ -259,7 +272,7 @@ namespace SyndicateAPI.Controllers
                 SubscribersCount = 0,
                 Biography = user.Person.Biography,
                 Rewards = new List<RewardViewModel>(),
-                Vehicles = vehicles
+                Vehicles = viewVehicles
             };
 
             if (user.Group != null)
