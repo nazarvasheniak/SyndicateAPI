@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
+using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Response;
 
@@ -24,6 +25,27 @@ namespace SyndicateAPI.Controllers
         {
             UserService = userService;
             RatingLevelService = ratingLevelService;
+        }
+
+        [HttpPost("createStartData")]
+        public async Task<IActionResult> CreateStartData()
+        {
+            var existLevels = RatingLevelService.GetAll();
+            foreach (var level in existLevels)
+                RatingLevelService.Delete(level);
+
+            var levels = new List<RatingLevel>()
+            {
+                new RatingLevel { PointsCount = 0, Title = "Новичок" },
+                new RatingLevel { PointsCount = 101, Title = "Приезжий" },
+                new RatingLevel { PointsCount = 301, Title = "Гонщик" },
+                new RatingLevel { PointsCount = 501, Title = "Профессионал" }
+            };
+
+            foreach (var level in levels)
+                RatingLevelService.Create(level);
+
+            return Ok(new ResponseModel());
         }
 
         [HttpGet]

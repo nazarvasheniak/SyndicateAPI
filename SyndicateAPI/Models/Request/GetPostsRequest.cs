@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace SyndicateAPI.Models.Request
 {
-    public class PublishPostRequest
+    public class GetPostsRequest
     {
         [Required]
-        public long ImageID { get; set; }
+        public int PageCount { get; set; }
 
-        public string Text { get; set; }
-        public DateTime PublishTime { get; set; }
-        public long RatingLevelID { get; set; }
+        [Required]
+        public int PageNumber { get; set; }
     }
 }

@@ -59,7 +59,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("user")]
-        public async Task<IActionResult> GetUserFeed()
+        public async Task<IActionResult> GetUserFeed([FromQuery] GetPostsRequest request)
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
@@ -67,12 +67,6 @@ namespace SyndicateAPI.Controllers
             var subsriptions = UserSubscriptionService.GetAll()
                 .Where(x => x.Subscriber == user)
                 .ToList();
-
-            if (subsriptions == null || subsriptions.Count == 0)
-                return Ok(new ResponseModel
-                {
-                    Message = "Вы не подписаны на людей"
-                });
 
             var feed = new List<PostViewModel>();
             
@@ -87,8 +81,18 @@ namespace SyndicateAPI.Controllers
                     feed.AddRange(posts);
             }
 
+            var myPosts = PostService.GetAll()
+                .Where(x => x.Author == user && x.IsPublished)
+                .Select(x => new PostViewModel(x))
+                .ToList();
+
+            feed.AddRange(myPosts);
+
             if (feed.Count != 0)
-                feed = feed.OrderBy(x => x.PublishTime).ToList();
+                feed = feed.OrderByDescending(x => x.PublishTime)
+                    .Skip((request.PageNumber - 1) * request.PageCount)
+                    .Take(request.PageCount)
+                    .ToList();
 
             return Ok(new DataResponse<List<PostViewModel>>
             {
@@ -97,7 +101,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("group")]
-        public async Task<IActionResult> GetGroupFeed()
+        public async Task<IActionResult> GetGroupFeed([FromQuery] GetPostsRequest request)
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
@@ -112,6 +116,12 @@ namespace SyndicateAPI.Controllers
                 .Where(x => x.Group == user.Group)
                 .Select(x => new GroupPostViewModel(x))
                 .ToList();
+
+            if (feed != null && feed.Count != 0)
+                feed = feed.OrderByDescending(x => x.Post.PublishTime)
+                    .Skip((request.PageNumber - 1) * request.PageCount)
+                    .Take(request.PageCount)
+                    .ToList();
 
             return Ok(new DataResponse<List<GroupPostViewModel>>
             {
