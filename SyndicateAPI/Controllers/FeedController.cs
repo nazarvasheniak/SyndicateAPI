@@ -19,43 +19,32 @@ namespace SyndicateAPI.Controllers
     public class FeedController : Controller
     {
         private IUserService UserService { get; set; }
-        private IPostService PostService { get; set; }
         private IFileService FileService { get; set; }
+        private IPostService PostService { get; set; }
+        private IPostLikeService PostLikeService { get; set; }
+        private IPostCommentService PostCommentService { get; set; }
         private IGroupPostService GroupPostService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
 
         public FeedController([FromBody]
             IUserService userService,
-            IPostService postService,
             IFileService fileService,
+            IPostService postService,
+            IPostLikeService postLikeService,
+            IPostCommentService postCommentService,
             IGroupPostService groupPostService,
             IRatingLevelService ratingLevelService,
             IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
-            PostService = postService;
             FileService = fileService;
+            PostService = postService;
+            PostLikeService = postLikeService;
+            PostCommentService = postCommentService;
             GroupPostService = groupPostService;
             RatingLevelService = ratingLevelService;
             UserSubscriptionService = userSubscriptionService;
-        }
-
-        [HttpGet("my")]
-        public async Task<IActionResult> GetMyPosts()
-        {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
-
-            var posts = PostService.GetAll()
-                .Where(x => x.Author == user && x.IsPublished && x.Type == PostType.User)
-                .Select(x => new PostViewModel(x))
-                .ToList();
-
-            return Ok(new DataResponse<List<PostViewModel>>
-            {
-                Data = posts
-            });
         }
 
         [HttpGet("user")]
@@ -69,7 +58,7 @@ namespace SyndicateAPI.Controllers
                 .ToList();
 
             var feed = new List<PostViewModel>();
-            
+
             foreach (var subscription in subsriptions)
             {
                 var posts = PostService.GetAll()
@@ -132,14 +121,6 @@ namespace SyndicateAPI.Controllers
         [HttpPost("user")]
         public async Task<IActionResult> PublishUserPost([FromBody] PublishPostRequest request)
         {
-            var ratingLevel = RatingLevelService.Get(request.RatingLevelID);
-            if (ratingLevel == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Rating level error"
-                });
-
             var image = FileService.Get(request.ImageID);
             if (image == null)
                 return BadRequest(new ResponseModel
@@ -157,14 +138,16 @@ namespace SyndicateAPI.Controllers
                 Type = PostType.User,
                 PublishTime = request.PublishTime,
                 Author = user,
-                MinRatingLevel = ratingLevel,
-                Image = image
+                RatingScore = request.RatingScore,
+                Image = image,
+                Latitude = request.Latitude,
+                Longitude = request.Longtitude
             };
 
-            if (request.PublishTime.ToUniversalTime() > DateTime.UtcNow)
-                post.IsPublished = false;
-            else
+            if (request.PublishTime.ToUniversalTime() <= DateTime.UtcNow)
                 post.IsPublished = true;
+            else
+                post.IsPublished = false;
 
             PostService.Create(post);
 
@@ -177,14 +160,6 @@ namespace SyndicateAPI.Controllers
         [HttpPost("group")]
         public async Task<IActionResult> PublishGroupPost([FromBody] PublishPostRequest request)
         {
-            var ratingLevel = RatingLevelService.Get(request.RatingLevelID);
-            if (ratingLevel == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Rating level error"
-                });
-
             var image = FileService.Get(request.ImageID);
             if (image == null)
                 return BadRequest(new ResponseModel
@@ -209,21 +184,23 @@ namespace SyndicateAPI.Controllers
                     Success = false,
                     Message = "Вы не можете публиковать посты в данной группировке"
                 });
-            
+
             var post = new Post
             {
                 Text = request.Text,
                 Type = PostType.Group,
                 PublishTime = request.PublishTime,
                 Author = user,
-                MinRatingLevel = ratingLevel,
-                Image = image
+                RatingScore = request.RatingScore,
+                Image = image,
+                Latitude = request.Latitude,
+                Longitude = request.Longtitude
             };
 
-            if (request.PublishTime.ToUniversalTime() > DateTime.UtcNow)
-                post.IsPublished = false;
-            else
+            if (request.PublishTime.ToUniversalTime() <= DateTime.UtcNow)
                 post.IsPublished = true;
+            else
+                post.IsPublished = false;
 
             PostService.Create(post);
 
@@ -238,6 +215,227 @@ namespace SyndicateAPI.Controllers
             return Ok(new DataResponse<GroupPostViewModel>
             {
                 Data = new GroupPostViewModel(groupPost)
+            });
+        }
+
+        [HttpPut("{postID}")]
+        public async Task<IActionResult> UpdatePost([FromBody] UpdatePostRequest request, long postID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var post = PostService.Get(postID);
+            if (post == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Post ID error"
+                });
+
+            if (request.Text != null && request.Text != post.Text)
+                post.Text = request.Text;
+
+            if (request.RatingScore != post.RatingScore)
+                post.RatingScore = request.RatingScore;
+
+            if (request.PublishTime != null && request.PublishTime != post.PublishTime)
+            {
+                if (request.PublishTime > DateTime.UtcNow)
+                    post.IsPublished = false;
+
+                post.PublishTime = request.PublishTime;
+            }
+
+            if (request.Latitude != post.Latitude || request.Longtitude != post.Longitude)
+            {
+                post.Latitude = request.Latitude;
+                post.Longitude = request.Longtitude;
+            }
+
+            PostService.Update(post);
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            bool isLiked;
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                isLiked = false;
+            else
+                isLiked = true;
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            return Ok(new DataResponse<PostViewModel>
+            {
+                Data = new PostViewModel(post, comments, isLiked, (ulong)likes.Count)
+            });
+        }
+
+        [HttpDelete("{postID}")]
+        public async Task<IActionResult> DeletePost(long postID)
+        {
+            var post = PostService.Get(postID);
+            if (post == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Post ID error"
+                });
+
+            PostService.Delete(postID);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPost("{postID}/like")]
+        public async Task<IActionResult> LikePost(long postID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var post = PostService.Get(postID);
+            if (post == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Post ID error"
+                });
+
+            var like = PostLikeService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Post == post);
+
+            if (like == null)
+            {
+                like = new PostLike
+                {
+                    Post = post,
+                    User = user
+                };
+
+                PostLikeService.Create(like);
+            }
+
+            var likesCount = PostLikeService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList()
+                .Count;
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var result = new PostViewModel(post, comments, true, (ulong)likesCount);
+
+            return Ok(new DataResponse<PostViewModel>
+            {
+                Data = result
+            });
+        }
+
+        [HttpDelete("{postID}/like")]
+        public async Task<IActionResult> UnlikePost(long postID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var post = PostService.Get(postID);
+            if (post == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Post ID error"
+                });
+
+            var like = PostLikeService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Post == post);
+
+            if (like != null)
+                PostLikeService.Delete(like);
+
+            var likesCount = PostLikeService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList()
+                .Count;
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var result = new PostViewModel(post, comments, false, (ulong)likesCount);
+
+            return Ok(new DataResponse<PostViewModel>
+            {
+                Data = result
+            });
+        }
+
+        [HttpPost("{postID}/comment")]
+        public async Task<IActionResult> PublishComment([FromBody] PublishCommentRequest request, long postID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var post = PostService.Get(postID);
+            if (post == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Post ID error"
+                });
+
+            var comment = new PostComment
+            {
+                Text = request.Text,
+                Post = post,
+                Author = user
+            };
+
+            PostCommentService.Create(comment);
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .Select(x => new PostCommentViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<PostCommentViewModel>>
+            {
+                Data = comments
+            });
+
+        }
+
+        [HttpDelete("{postID}/comment/{commentID}")]
+        public async Task<IActionResult> DeleteComment(long postID, long commentID)
+        {
+            var post = PostService.Get(postID);
+            if (post == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Post ID error"
+                });
+
+            var comment = PostCommentService.Get(commentID);
+            if (comment == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Comment ID error"
+                });
+
+            PostCommentService.Delete(commentID);
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .Select(x => new PostCommentViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<PostCommentViewModel>>
+            {
+                Data = comments
             });
         }
     }

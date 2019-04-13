@@ -7,6 +7,7 @@ namespace SyndicateAPI.Domain.Enums
     public enum PostType
     {
         User = 0,
-        Group = 1
+        Group = 1,
+        Syndicate = 2
     }
 }

@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using SyndicateAPI.BusinessLogic;
+using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Storage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -48,6 +50,8 @@ namespace SyndicateAPI
                     };
                 });
 
+            services.AddScoped<PublishManager>();
+
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
@@ -60,7 +64,7 @@ namespace SyndicateAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -89,8 +93,10 @@ namespace SyndicateAPI
 
             //app.UseHttpsRedirection();
             app.UseMvc();
-
             app.UseWebSockets();
+
+            var publishManager = serviceProvider.GetService<PublishManager>();
+            publishManager.SetServices(serviceProvider.GetService<IPostService>());
         }
     }
 }

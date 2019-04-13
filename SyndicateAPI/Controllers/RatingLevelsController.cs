@@ -13,7 +13,6 @@ namespace SyndicateAPI.Controllers
 {
     [Route("api/ratingLevels")]
     [ApiController]
-    [Authorize]
     public class RatingLevelsController : Controller
     {
         private IUserService UserService { get; set; }
@@ -49,6 +48,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetRatingLevels()
         {
             var ratingLevels = RatingLevelService.GetAll()
@@ -62,6 +62,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetRatingLevel(long id)
         {
             var ratingLevel = RatingLevelService.Get(id);
@@ -79,6 +80,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("{pointsCount}")]
+        [Authorize]
         public async Task<IActionResult> GetRatingLevel(int pointsCount)
         {
             var ratingLevel = RatingLevelService.GetAll()
@@ -98,6 +100,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("{name}")]
+        [Authorize]
         public async Task<IActionResult> GetRatingLevel(string name)
         {
             var ratingLevel = RatingLevelService.GetAll()
