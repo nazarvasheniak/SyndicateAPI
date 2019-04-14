@@ -26,9 +26,6 @@ namespace SyndicateAPI
 
         public void PublishPosts(object source, ElapsedEventArgs e)
         {
-            if (PostService == null)
-                return;
-
             var posts = PostService.GetAll()
                 .Where(x => !x.IsPublished)
                 .ToList();

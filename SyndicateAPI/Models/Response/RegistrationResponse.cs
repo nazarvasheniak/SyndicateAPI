@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace SyndicateAPI.Models.Response
 {
-    public class RegistrationResponse
+    public class RegistrationResponse : ResponseModel
     {
         public long UserID { get; set; }
     }

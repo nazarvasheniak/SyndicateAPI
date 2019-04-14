@@ -193,7 +193,7 @@ namespace SyndicateAPI.Controllers
             {
                 Text = request.Text,
                 Type = PostType.User,
-                PublishTime = request.PublishTime,
+                PublishTime = request.PublishTime.ToUniversalTime(),
                 Author = user,
                 RatingScore = request.RatingScore,
                 Image = image,

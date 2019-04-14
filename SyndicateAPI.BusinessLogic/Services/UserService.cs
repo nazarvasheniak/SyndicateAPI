@@ -16,6 +16,48 @@ namespace SyndicateAPI.BusinessLogic.Services
         {
         }
 
+        public bool IsEmailExist(string email)
+        {
+            if (GetAll().FirstOrDefault(x => x.Login == email) != null)
+                return true;
+            else
+                return false;
+        }
+
+        public bool IsNicknameExist(string nickname)
+        {
+            if (GetAll().FirstOrDefault(x => x.Nickname == nickname) != null)
+                return true;
+            else
+                return false;
+        }
+
+        public User CreateUser(string nickname, string password, Person person)
+        {
+            var user = new User
+            {
+                Login = person.Email,
+                Password = password,
+                Nickname = nickname,
+                RegTime = DateTime.UtcNow,
+                PointsCount = 0,
+                Person = person,
+                IsActive = false,
+                ActivationCode = GetRandomNumber()
+            };
+
+            try
+            {
+                Create(user);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+            return user;
+        }
+
         public string AuthorizeUser(string username, string password)
         {
             var identity = GetIdentity(username, password);
@@ -66,6 +108,12 @@ namespace SyndicateAPI.BusinessLogic.Services
 
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
             return encodedJwt;
+        }
+
+        private int GetRandomNumber()
+        {
+            Random random = new Random();
+            return random.Next(1000, 9999);
         }
     }
 }

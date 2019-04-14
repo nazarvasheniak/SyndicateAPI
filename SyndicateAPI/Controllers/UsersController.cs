@@ -41,7 +41,6 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         [HttpPost("reg")]
         public IActionResult Registration([FromBody] RegistrationRequest request)
         {
-            // TO-DO: Вынести в сервис 
             var city = CityService.Get(request.CityID);
             if (city == null)
                 return BadRequest(new ResponseModel
@@ -50,20 +49,14 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "City error"
                 });
 
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == request.Email);
-
-            if (user != null)
+            if (UserService.IsEmailExist(request.Email))
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
                     Message = "Email is already used by another user"
                 });
 
-            user = UserService.GetAll()
-                .FirstOrDefault(x => x.Nickname == request.Nickname);
-
-            if (user != null)
+            if (UserService.IsNicknameExist(request.Nickname))
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
@@ -77,25 +70,8 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "Passwords is not equals"
                 });
 
-            var person = new Person
-            {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                City = city
-            };
-
-            user = new User
-            {
-                Login = request.Email,
-                Password = request.Password,
-                Nickname = request.Nickname,
-                RegTime = DateTime.UtcNow,
-                PointsCount = 0,
-                Person = person,
-                IsActive = false,
-                ActivationCode = RandomNumber()
-            };
+            var person = PersonService.CreatePerson(request.FirstName, request.LastName, request.Email, city);
+            var user = UserService.CreateUser(request.Nickname, request.Password, person);
 
             var activationMessage = EmailService.SendActivationMessage(user.Login, user.ActivationCode);
             activationMessage.Wait();
@@ -106,21 +82,6 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Success = false,
                     Message = "Ошибка отправки активационного письма"
                 });
-
-            try
-            {
-                PersonService.Create(person);
-                UserService.Create(user);
-            } catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Unique login exception"
-                });
-            }
 
             return Ok(new RegistrationResponse
             {
