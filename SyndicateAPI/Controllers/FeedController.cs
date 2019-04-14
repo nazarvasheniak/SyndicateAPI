@@ -47,6 +47,67 @@ namespace SyndicateAPI.Controllers
             UserSubscriptionService = userSubscriptionService;
         }
 
+        private PostViewModel PostToViewModel(Post post)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var result = new PostViewModel(post)
+            {
+                Comments = comments.Select(x => new PostCommentViewModel(x)).ToList(),
+                LikesCount = (ulong)likes.Count
+            };
+
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                result.IsLiked = false;
+            else
+                result.IsLiked = true;
+
+            return result;
+        }
+
+        private List<PostViewModel> PostToViewModel(IEnumerable<Post> posts)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var result = new List<PostViewModel>();
+
+            foreach (var post in posts)
+            {
+                var likes = PostLikeService.GetAll()
+                    .Where(x => x.Post == post)
+                    .ToList();
+
+                var comments = PostCommentService.GetAll()
+                    .Where(x => x.Post == post)
+                    .ToList();
+
+                var postItem = new PostViewModel(post)
+                {
+                    Comments = comments.Select(x => new PostCommentViewModel(x)).ToList(),
+                    LikesCount = (ulong)likes.Count
+                };
+
+                if (likes.FirstOrDefault(x => x.User == user) == null)
+                    postItem.IsLiked = false;
+                else
+                    postItem.IsLiked = true;
+
+                result.Add(postItem);
+            }
+
+            return result;
+        }
+
         [HttpGet("user")]
         public async Task<IActionResult> GetUserFeed([FromQuery] GetPostsRequest request)
         {
@@ -61,19 +122,15 @@ namespace SyndicateAPI.Controllers
 
             foreach (var subscription in subsriptions)
             {
-                var posts = PostService.GetAll()
-                    .Where(x => x.Author == subscription.Subject && x.IsPublished && x.Type == PostType.User)
-                    .Select(x => new PostViewModel(x))
-                    .ToList();
+                var posts = PostToViewModel(PostService.GetAll()
+                    .Where(x => x.Author == subscription.Subject && x.IsPublished && x.Type == PostType.User));
 
                 if (posts != null && posts.Count != 0)
                     feed.AddRange(posts);
             }
 
-            var myPosts = PostService.GetAll()
-                .Where(x => x.Author == user && x.IsPublished)
-                .Select(x => new PostViewModel(x))
-                .ToList();
+            var myPosts = PostToViewModel(PostService.GetAll()
+                .Where(x => x.Author == user && x.IsPublished));
 
             feed.AddRange(myPosts);
 

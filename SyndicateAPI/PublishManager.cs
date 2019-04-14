@@ -12,8 +12,10 @@ namespace SyndicateAPI
         public PublishManager()
         {
             var timer = new Timer();
+
             timer.Elapsed += new ElapsedEventHandler(PublishPosts);
             timer.Interval = 60000 * 5;
+            timer.Start();
         }
 
         public void SetServices(IPostService postService)
@@ -24,6 +26,9 @@ namespace SyndicateAPI
 
         public void PublishPosts(object source, ElapsedEventArgs e)
         {
+            if (PostService == null)
+                return;
+
             var posts = PostService.GetAll()
                 .Where(x => !x.IsPublished)
                 .ToList();
