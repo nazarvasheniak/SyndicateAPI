@@ -12,6 +12,7 @@ namespace SyndicateAPI.Models
         public string Text { get; set; }
         public bool IsLiked { get; set; }
         public ulong LikesCount { get; set; }
+        public DateTime Time { get; set; }
         public UserViewModel Author { get; set; }
 
         public PostCommentViewModel() { }
@@ -24,6 +25,7 @@ namespace SyndicateAPI.Models
                 Text = comment.Text;
                 IsLiked = isLiked;
                 LikesCount = likesCount;
+                Time = comment.Time;
                 Author = new UserViewModel(comment.Author);
             }
         }

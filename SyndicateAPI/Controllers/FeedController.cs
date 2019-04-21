@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
+using SyndicateAPI.WebSocketManager;
 
 namespace SyndicateAPI.Controllers
 {
@@ -27,6 +29,7 @@ namespace SyndicateAPI.Controllers
         private IGroupPostService GroupPostService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
+        private NotificationsMessageHandler NotificationService { get; set; }
 
         public FeedController([FromBody]
             IUserService userService,
@@ -37,7 +40,8 @@ namespace SyndicateAPI.Controllers
             IPostCommentLikeService postCommentLikeService,
             IGroupPostService groupPostService,
             IRatingLevelService ratingLevelService,
-            IUserSubscriptionService userSubscriptionService)
+            IUserSubscriptionService userSubscriptionService,
+            NotificationsMessageHandler notificationService)
         {
             UserService = userService;
             FileService = fileService;
@@ -48,6 +52,7 @@ namespace SyndicateAPI.Controllers
             GroupPostService = groupPostService;
             RatingLevelService = ratingLevelService;
             UserSubscriptionService = userSubscriptionService;
+            NotificationService = notificationService;
         }
 
         private PostViewModel PostToViewModel(Post post)
@@ -261,6 +266,14 @@ namespace SyndicateAPI.Controllers
 
             PostService.Create(post);
 
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.CreatePost,
+                Message = post
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
                 Data = new PostViewModel(post)
@@ -321,6 +334,14 @@ namespace SyndicateAPI.Controllers
             };
 
             GroupPostService.Create(groupPost);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.CreatePost,
+                Message = groupPost
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<GroupPostViewModel>
             {
@@ -401,9 +422,19 @@ namespace SyndicateAPI.Controllers
                 viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
             }
 
+            var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
-                Data = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count)
+                Data = result
             });
         }
 
@@ -419,6 +450,14 @@ namespace SyndicateAPI.Controllers
                 });
 
             PostService.Delete(postID);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.DeletePost,
+                Message = postID
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new ResponseModel());
         }
@@ -480,6 +519,14 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, true, (ulong)likesCount);
 
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
                 Data = result
@@ -535,6 +582,14 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, false, (ulong)likesCount);
 
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
                 Data = result
@@ -558,6 +613,7 @@ namespace SyndicateAPI.Controllers
             var comment = new PostComment
             {
                 Text = request.Text,
+                Time = DateTime.UtcNow,
                 Post = post,
                 Author = user
             };
@@ -597,9 +653,19 @@ namespace SyndicateAPI.Controllers
                 viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
             }
 
+            var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
-                Data = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count)
+                Data = result
             });
         }
 
@@ -667,9 +733,19 @@ namespace SyndicateAPI.Controllers
                 viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
             }
 
+            var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
-                Data = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count)
+                Data = result
             });
         }
 
@@ -743,9 +819,19 @@ namespace SyndicateAPI.Controllers
                 viewComments.Add(new PostCommentViewModel(c, isLiked, (ulong)likes.Count));
             }
 
+            var result = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
-                Data = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount)
+                Data = result
             });
         }
 
@@ -811,9 +897,19 @@ namespace SyndicateAPI.Controllers
                 viewComments.Add(new PostCommentViewModel(c, isLiked, (ulong)likes.Count));
             }
 
+            var result = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount);
+
+            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            {
+                Type = SocketMessageType.UpdatePost,
+                Message = result
+            });
+
+            await NotificationService.SendMessageToAllAsync(socketMessage);
+
             return Ok(new DataResponse<PostViewModel>
             {
-                Data = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount)
+                Data = result
             });
         }
     }

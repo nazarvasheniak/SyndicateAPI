@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using SyndicateAPI.BusinessLogic;
 using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Storage;
+using SyndicateAPI.WebSocketManager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,8 @@ namespace SyndicateAPI
                 { "Bearer", Enumerable.Empty<string>() },
                 });
             });
+
+            services.AddWebSocketManager();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -94,6 +97,10 @@ namespace SyndicateAPI
             //app.UseHttpsRedirection();
             app.UseMvc();
             app.UseWebSockets();
+
+            var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
+
+            app.MapWebSocketManager("/notifications", notifMessageHandler);
 
             var publishManager = serviceProvider.GetService<PublishManager>();
             publishManager.SetServices(serviceProvider.GetService<IPostService>());
