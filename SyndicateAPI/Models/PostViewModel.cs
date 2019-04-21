@@ -42,7 +42,7 @@ namespace SyndicateAPI.Models
             }
         }
 
-        public PostViewModel(Post post, IEnumerable<PostComment> comments, bool isLiked, ulong likesCount)
+        public PostViewModel(Post post, IEnumerable<PostCommentViewModel> comments, bool isLiked, ulong likesCount)
         {
             if (post != null)
             {
@@ -57,7 +57,7 @@ namespace SyndicateAPI.Models
                 Coordinates = new CoordinatesViewModel(post.Latitude, post.Longitude);
                 IsLiked = isLiked;
                 LikesCount = likesCount;
-                Comments = comments.Select(x => new PostCommentViewModel(x)).ToList();
+                Comments = comments.ToList();
             }
         }
     }

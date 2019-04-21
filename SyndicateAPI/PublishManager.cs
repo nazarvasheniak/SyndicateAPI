@@ -14,7 +14,7 @@ namespace SyndicateAPI
             var timer = new Timer();
 
             timer.Elapsed += new ElapsedEventHandler(PublishPosts);
-            timer.Interval = 60000 * 5;
+            timer.Interval = 60000;
             timer.Start();
         }
 

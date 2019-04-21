@@ -52,6 +52,7 @@ namespace SyndicateAPI.BusinessLogic.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return null;
             }
 

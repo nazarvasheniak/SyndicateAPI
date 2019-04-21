@@ -245,6 +245,196 @@ namespace SyndicateAPI.Controllers
             return Ok(new ResponseModel());
         }
 
+        [HttpGet("subscribers")]
+        public async Task<IActionResult> GetSubscribers([FromQuery] string type)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            if (type.Equals("user"))
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscribers
+                });
+            }
+            else if (type.Equals("profile"))
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user)
+                    .Select(x => GetProfileModel(x.Subscriber))
+                    .ToList();
+
+                return Ok(new DataResponse<List<ProfileViewModel>>
+                {
+                    Data = subscribers
+                });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscribers
+                });
+            }
+        }
+
+        [HttpGet("{id}/subscribers")]
+        public async Task<IActionResult> GetSubscribers([FromQuery] string type, long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID == id);
+
+            if (user == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            if (type.Equals("user"))
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscribers
+                });
+            }
+            else if (type.Equals("profile"))
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user)
+                    .Select(x => GetProfileModel(x.Subscriber))
+                    .ToList();
+
+                return Ok(new DataResponse<List<ProfileViewModel>>
+                {
+                    Data = subscribers
+                });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscribers
+                });
+            }
+        }
+
+        [HttpGet("subscriptions")]
+        public async Task<IActionResult> GetSubscriptions([FromQuery] string type)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            if (type.Equals("user"))
+            {
+                var subscriptions = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subscriber == user)
+                    .Select(x => new UserViewModel(x.Subject))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscriptions
+                });
+            }
+            else if (type.Equals("profile"))
+            {
+                var subscriptions = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subscriber == user)
+                    .Select(x => GetProfileModel(x.Subject))
+                    .ToList();
+
+                return Ok(new DataResponse<List<ProfileViewModel>>
+                {
+                    Data = subscriptions
+                });
+            }
+            else
+            {
+                var subscriptions = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subscriber == user)
+                    .Select(x => new UserViewModel(x.Subject))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscriptions
+                });
+            }
+        }
+
+        [HttpGet("{id}/subscriptions")]
+        public async Task<IActionResult> GetSubscriptions([FromQuery] string type, long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID == id);
+
+            if (user == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            if (type.Equals("user"))
+            {
+                var subscriptions = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subscriber == user)
+                    .Select(x => new UserViewModel(x.Subject))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscriptions
+                });
+            }
+            else if (type.Equals("profile"))
+            {
+                var subscriptions = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subscriber == user)
+                    .Select(x => GetProfileModel(x.Subject))
+                    .ToList();
+
+                return Ok(new DataResponse<List<ProfileViewModel>>
+                {
+                    Data = subscriptions
+                });
+            }
+            else
+            {
+                var subscriptions = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subscriber == user)
+                    .Select(x => new UserViewModel(x.Subject))
+                    .ToList();
+
+                return Ok(new DataResponse<List<UserViewModel>>
+                {
+                    Data = subscriptions
+                });
+            }
+        }
+
         private ProfileViewModel GetProfileModel(User user)
         {
             var vehicles = VehicleService.GetAll()

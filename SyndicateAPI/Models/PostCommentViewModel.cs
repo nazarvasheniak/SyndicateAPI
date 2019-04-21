@@ -10,16 +10,20 @@ namespace SyndicateAPI.Models
     {
         public long ID { get; set; }
         public string Text { get; set; }
+        public bool IsLiked { get; set; }
+        public ulong LikesCount { get; set; }
         public UserViewModel Author { get; set; }
 
         public PostCommentViewModel() { }
 
-        public PostCommentViewModel(PostComment comment)
+        public PostCommentViewModel(PostComment comment, bool isLiked, ulong likesCount)
         {
             if (comment != null)
             {
                 ID = comment.ID;
                 Text = comment.Text;
+                IsLiked = isLiked;
+                LikesCount = likesCount;
                 Author = new UserViewModel(comment.Author);
             }
         }
