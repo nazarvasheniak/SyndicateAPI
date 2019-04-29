@@ -1,23 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace SyndicateAPI.Models.Request
 {
-    public class CreateGroupRequest
+    public class UpdateGroupRequest
     {
-        [Required]
         public string Name { get; set; }
-
-        [Required]
         public string ShortDesc { get; set; }
-
-        [Required]
         public string FullDesc { get; set; }
-
-        [Required]
         public string Information { get; set; }
+        public long AvatarID { get; set; }
     }
 }

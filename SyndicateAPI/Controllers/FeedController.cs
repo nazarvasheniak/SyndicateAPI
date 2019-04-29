@@ -153,7 +153,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("user")]
-        public async Task<IActionResult> GetUserFeed([FromQuery] GetPostsRequest request)
+        public async Task<IActionResult> GetUserFeed([FromQuery] GetListRequest request)
         {
             var req = Request;
             var user = UserService.GetAll()
@@ -192,7 +192,7 @@ namespace SyndicateAPI.Controllers
         }
 
         [HttpGet("group")]
-        public async Task<IActionResult> GetGroupFeed([FromQuery] GetPostsRequest request)
+        public async Task<IActionResult> GetGroupFeed([FromQuery] GetListRequest request)
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
@@ -266,13 +266,13 @@ namespace SyndicateAPI.Controllers
 
             PostService.Create(post);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.CreatePost,
-                Message = post
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.CreateUserPost,
+            //    Message = post
+            //});
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -335,13 +335,13 @@ namespace SyndicateAPI.Controllers
 
             GroupPostService.Create(groupPost);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.CreatePost,
-                Message = groupPost
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.CreatePost,
+            //    Message = groupPost
+            //});
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<GroupPostViewModel>
             {
@@ -426,7 +426,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 
@@ -453,7 +453,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.DeletePost,
+                Type = SocketMessageType.DeleteUserPost,
                 Message = postID
             });
 
@@ -521,7 +521,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 
@@ -584,7 +584,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 
@@ -657,7 +657,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 
@@ -737,7 +737,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 
@@ -823,7 +823,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 
@@ -901,7 +901,7 @@ namespace SyndicateAPI.Controllers
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {
-                Type = SocketMessageType.UpdatePost,
+                Type = SocketMessageType.UpdateUserPost,
                 Message = result
             });
 

@@ -17,6 +17,7 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.Name, "name");
             Map(u => u.ShortDesc, "short_desc");
             Map(u => u.FullDesc, "full_desc");
+            Map(u => u.Information, "information");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

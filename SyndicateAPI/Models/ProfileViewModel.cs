@@ -16,5 +16,7 @@ namespace SyndicateAPI.Models
         public string Biography { get; set; }
         public List<RewardViewModel> Rewards { get; set; }
         public List<VehicleViewModel> Vehicles { get; set; }
+        public List<UserViewModel> Subscribers { get; set; }
+        public List<UserViewModel> Subscriptions { get; set; }
     }
 }

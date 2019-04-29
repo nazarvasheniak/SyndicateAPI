@@ -16,6 +16,11 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<ICityService, CityService>()
                 .AddScoped<IFileService, FileService>()
                 .AddScoped<IGroupService, GroupService>()
+                .AddScoped<IGroupSubscriptionService, GroupSubscriptionService>()
+                .AddScoped<IGroupMemberService, GroupMemberService>()
+                .AddScoped<IGroupModeratorService, GroupModeratorService>()
+                .AddScoped<IGroupCreatorService, GroupCreatorService>()
+                .AddScoped<IGroupJoinRequestService, GroupJoinRequestService>()
                 .AddScoped<IRewardService, RewardService>()
                 .AddScoped<IVehicleService, VehicleService>()
                 .AddScoped<IVehiclePhotoService, VehiclePhotoService>()
@@ -30,7 +35,8 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<IPostCommentService, PostCommentService>()
                 .AddScoped<IPostCommentLikeService, PostCommentLikeService>()
                 .AddScoped<IGroupPostService, GroupPostService>()
-                .AddScoped<IUserSubscriptionService, UserSubscriptionService>();
+                .AddScoped<IUserSubscriptionService, UserSubscriptionService>()
+                .AddScoped<IPointsRewardService, PointsRewardService>();
         }
     }
 }

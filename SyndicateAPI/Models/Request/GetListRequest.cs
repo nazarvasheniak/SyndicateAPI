@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SyndicateAPI.Models.Request
 {
-    public class GetPostsRequest
+    public class GetListRequest
     {
         [Required]
         public int PageCount { get; set; }

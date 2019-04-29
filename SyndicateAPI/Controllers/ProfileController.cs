@@ -254,7 +254,7 @@ namespace SyndicateAPI.Controllers
             if (type.Equals("user"))
             {
                 var subscribers = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subject == user)
+                    .Where(x => x.Subject == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -266,7 +266,7 @@ namespace SyndicateAPI.Controllers
             else if (type.Equals("profile"))
             {
                 var subscribers = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subject == user)
+                    .Where(x => x.Subject == user && x.IsActive)
                     .Select(x => GetProfileModel(x.Subscriber))
                     .ToList();
 
@@ -278,7 +278,7 @@ namespace SyndicateAPI.Controllers
             else
             {
                 var subscribers = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subject == user)
+                    .Where(x => x.Subject == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -305,7 +305,7 @@ namespace SyndicateAPI.Controllers
             if (type.Equals("user"))
             {
                 var subscribers = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subject == user)
+                    .Where(x => x.Subject == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -317,7 +317,7 @@ namespace SyndicateAPI.Controllers
             else if (type.Equals("profile"))
             {
                 var subscribers = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subject == user)
+                    .Where(x => x.Subject == user && x.IsActive)
                     .Select(x => GetProfileModel(x.Subscriber))
                     .ToList();
 
@@ -329,7 +329,7 @@ namespace SyndicateAPI.Controllers
             else
             {
                 var subscribers = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subject == user)
+                    .Where(x => x.Subject == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -349,7 +349,7 @@ namespace SyndicateAPI.Controllers
             if (type.Equals("user"))
             {
                 var subscriptions = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subscriber == user)
+                    .Where(x => x.Subscriber == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -361,7 +361,7 @@ namespace SyndicateAPI.Controllers
             else if (type.Equals("profile"))
             {
                 var subscriptions = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subscriber == user)
+                    .Where(x => x.Subscriber == user && x.IsActive)
                     .Select(x => GetProfileModel(x.Subject))
                     .ToList();
 
@@ -373,7 +373,7 @@ namespace SyndicateAPI.Controllers
             else
             {
                 var subscriptions = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subscriber == user)
+                    .Where(x => x.Subscriber == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -400,7 +400,7 @@ namespace SyndicateAPI.Controllers
             if (type.Equals("user"))
             {
                 var subscriptions = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subscriber == user)
+                    .Where(x => x.Subscriber == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -412,7 +412,7 @@ namespace SyndicateAPI.Controllers
             else if (type.Equals("profile"))
             {
                 var subscriptions = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subscriber == user)
+                    .Where(x => x.Subscriber == user && x.IsActive)
                     .Select(x => GetProfileModel(x.Subject))
                     .ToList();
 
@@ -424,7 +424,7 @@ namespace SyndicateAPI.Controllers
             else
             {
                 var subscriptions = UserSubscriptionService.GetAll()
-                    .Where(x => x.Subscriber == user)
+                    .Where(x => x.Subscriber == user && x.IsActive)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -459,7 +459,6 @@ namespace SyndicateAPI.Controllers
                 Nickname = user.Nickname,
                 PointsCount = user.PointsCount,
                 CityName = user.Person.City.Name,
-                SubscribersCount = 0,
                 Biography = user.Person.Biography,
                 Rewards = new List<RewardViewModel>(),
                 Vehicles = viewVehicles
@@ -470,6 +469,18 @@ namespace SyndicateAPI.Controllers
 
             if (user.Avatar != null)
                 profile.AvatarUrl = user.Avatar.Url;
+
+            profile.Subscribers = UserSubscriptionService.GetAll()
+                .Where(x => x.Subject == user && x.IsActive)
+                .Select(x => new UserViewModel(x.Subscriber))
+                .ToList();
+
+            profile.SubscribersCount = profile.Subscribers.Count();
+
+            profile.Subscriptions = UserSubscriptionService.GetAll()
+                .Where(x => x.Subscriber == user && x.IsActive)
+                .Select(x => new UserViewModel(x.Subject))
+                .ToList();
 
             return profile;
         }
