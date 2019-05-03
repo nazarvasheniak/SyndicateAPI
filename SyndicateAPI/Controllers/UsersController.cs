@@ -3,11 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
-using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
-using SyndicateAPI.Utils.Helpers;
 
 namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 {
