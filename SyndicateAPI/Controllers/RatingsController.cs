@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Response;
@@ -20,6 +21,11 @@ namespace SyndicateAPI.Controllers
         private IUserService UserService { get; set; }
         private IGroupService GroupService { get; set; }
         private IGroupPostService GroupPostService { get; set; }
+        private IGroupMemberService GroupMemberService { get; set; }
+        private IGroupModeratorService GroupModeratorService { get; set; }
+        private IGroupCreatorService GroupCreatorService { get; set; }
+        private IGroupSubscriptionService GroupSubscriptionService { get; set; }
+        private IGroupJoinRequestService GroupJoinRequestService { get; set; }
         private IVehicleService VehicleService { get; set; }
         private IVehiclePhotoService VehiclePhotoService { get; set; }
 
@@ -27,12 +33,22 @@ namespace SyndicateAPI.Controllers
             IUserService userService,
             IGroupService groupService,
             IGroupPostService groupPostService,
+            IGroupMemberService groupMemberService,
+            IGroupModeratorService groupModeratorService,
+            IGroupCreatorService groupCreatorService,
+            IGroupSubscriptionService groupSubscriptionService,
+            IGroupJoinRequestService groupJoinRequestService,
             IVehicleService vehicleService,
             IVehiclePhotoService vehiclePhotoService)
         {
             UserService = userService;
             GroupService = groupService;
             GroupPostService = groupPostService;
+            GroupMemberService = groupMemberService;
+            GroupModeratorService = groupModeratorService;
+            GroupCreatorService = groupCreatorService;
+            GroupSubscriptionService = groupSubscriptionService;
+            GroupJoinRequestService = groupJoinRequestService;
             VehicleService = vehicleService;
             VehiclePhotoService = vehiclePhotoService;
         }
@@ -60,22 +76,116 @@ namespace SyndicateAPI.Controllers
                 });
         }
 
+        private GroupMemberViewModel MemberToViewModel(GroupMember member)
+        {
+            var result = new GroupMemberViewModel(member);
+
+            var creator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (creator != null)
+            {
+                result.Role = RoleInGroup.Creator;
+                return result;
+            }
+
+            var moderator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (moderator != null)
+            {
+                switch (moderator.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        result.Role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        result.Role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        result.Role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        result.Role = RoleInGroup.Member;
+                        break;
+                }
+
+                return result;
+            }
+
+            return result;
+        }
+
         [HttpGet("groups")]
         public async Task<IActionResult> GetGroupRatings()
         {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
             var ratingList = new Dictionary<GroupViewModel, long>();
 
             var groups = GroupService.GetAll().ToList();
             foreach (var group in groups)
             {
-                var groupUsers = UserService.GetAll()
-                    .Where(x => x.Group == group)
+                var posts = GroupPostService.GetAll()
+                    .Where(x => x.Group == group && x.Post.IsPublished)
+                    .Select(x => new GroupPostViewModel(x))
                     .ToList();
 
-                if (groupUsers == null || groupUsers.Count == 0)
-                    ratingList.Add(new GroupViewModel(group), 0);
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == group && x.IsActive)
+                    .Select(x => MemberToViewModel(x))
+                    .ToList();
+
+                RoleInGroup role;
+                if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == group && x.IsActive) != null)
+                    role = RoleInGroup.Creator;
+                else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == group && x.IsActive) != null)
+                {
+                    var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                        x.Group == group && x.IsActive);
+
+                    switch (moder.Level)
+                    {
+                        case GroupModeratorLevel.Level1:
+                            role = RoleInGroup.ModeratorLevel1;
+                            break;
+                        case GroupModeratorLevel.Level2:
+                            role = RoleInGroup.ModeratorLevel2;
+                            break;
+                        case GroupModeratorLevel.Level3:
+                            role = RoleInGroup.ModeratorLevel3;
+                            break;
+                        default:
+                            role = RoleInGroup.Member;
+                            break;
+                    }
+                }
                 else
-                    ratingList.Add(new GroupViewModel(group), groupUsers.Sum(x => x.PointsCount));
+                    role = RoleInGroup.Member;
+
+                var joinRequests = GroupJoinRequestService.GetAll()
+                    .Where(x => x.Group == group && x.Status == GroupJoinRequestStatus.New)
+                    .Select(x => new GroupJoinRequestViewModel(x))
+                    .ToList();
+
+                if (groupMembers.Count == 0)
+                    ratingList.Add(new GroupViewModel(group, posts, groupSubscribers, groupMembers, role, joinRequests), 0);
+                else
+                    ratingList.Add(new GroupViewModel(group, posts, groupSubscribers, groupMembers, role, joinRequests), groupMembers.Sum(x => x.User.PointsCount));
             }
 
             var result = new List<GroupViewModel>();
@@ -118,8 +228,63 @@ namespace SyndicateAPI.Controllers
                 Vehicles = viewVehicles
             };
 
-            if (user.Group != null)
-                profile.GroupName = user.Group.Name;
+            var groupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (groupMember != null)
+            {
+                var posts = GroupPostService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.Post.IsPublished)
+                    .Select(x => new GroupPostViewModel(x))
+                    .ToList();
+
+                RoleInGroup role;
+                if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == groupMember.Group) != null)
+                    role = RoleInGroup.Creator;
+                else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == groupMember.Group) != null)
+                {
+                    var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                        x.Group == groupMember.Group);
+
+                    switch (moder.Level)
+                    {
+                        case GroupModeratorLevel.Level1:
+                            role = RoleInGroup.ModeratorLevel1;
+                            break;
+                        case GroupModeratorLevel.Level2:
+                            role = RoleInGroup.ModeratorLevel2;
+                            break;
+                        case GroupModeratorLevel.Level3:
+                            role = RoleInGroup.ModeratorLevel3;
+                            break;
+                        default:
+                            role = RoleInGroup.Member;
+                            break;
+                    }
+                }
+                else
+                    role = RoleInGroup.Member;
+
+                var subscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var members = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.IsActive)
+                    .Select(x => MemberToViewModel(x))
+                    .ToList();
+
+                var joinRequests = GroupJoinRequestService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                    .Select(x => new GroupJoinRequestViewModel(x))
+                    .ToList();
+
+                profile.GroupName = groupMember.Group.Name;
+                profile.Group = new GroupViewModel(groupMember.Group, posts, subscribers, members, role, joinRequests);
+            }
 
             if (user.Avatar != null)
                 profile.AvatarUrl = user.Avatar.Url;

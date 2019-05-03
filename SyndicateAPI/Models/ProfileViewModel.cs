@@ -8,6 +8,7 @@ namespace SyndicateAPI.Models
         public string LastName { get; set; }
         public string Nickname { get; set; }
         public string GroupName { get; set; }
+        public GroupViewModel Group { get; set; }
         public long PointsCount { get; set; }
         public string RatingLevel { get; set; }
         public string CityName { get; set; }

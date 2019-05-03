@@ -11,7 +11,6 @@ namespace SyndicateAPI.Models
         public DateTime RegTime { get; set; }
         public FileViewModel Avatar { get; set; }
         public PersonViewModel Person { get; set; }
-        public GroupViewModel Group { get; set; }
         public bool IsOnline { get; set; }
 
         public UserViewModel() { }
@@ -26,7 +25,6 @@ namespace SyndicateAPI.Models
                 RegTime = user.RegTime;
                 Avatar = new FileViewModel(user.Avatar);
                 Person = new PersonViewModel(user.Person);
-                Group = new GroupViewModel(user.Group);
                 IsOnline = user.IsOnline;
             }
         }

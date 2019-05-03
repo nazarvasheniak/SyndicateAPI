@@ -7,7 +7,9 @@ namespace SyndicateAPI.Domain.Enums
     public enum RoleInGroup
     {
         Member = 1,
-        Moderator = 2,
-        Creator = 3
+        ModeratorLevel1 = 2,
+        ModeratorLevel2 = 3,
+        ModeratorLevel3 = 4,
+        Creator = 5
     }
 }

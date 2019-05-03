@@ -12,7 +12,6 @@ namespace SyndicateAPI.Domain.Models
         public virtual DateTime RegTime { get; set; }
         public virtual File Avatar { get; set; }
         public virtual Person Person { get; set; }
-        public virtual Group Group { get; set; }
         public virtual int ActivationCode { get; set; }
         public virtual DateTime ActivationTime { get; set; }
         public virtual bool IsActive { get; set; }

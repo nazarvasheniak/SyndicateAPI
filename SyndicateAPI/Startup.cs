@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 using SyndicateAPI.BusinessLogic;
@@ -63,11 +64,11 @@ namespace SyndicateAPI
                 });
             });
 
-            services.AddWebSocketManager();
+            //services.AddWebSocketManager();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -98,9 +99,8 @@ namespace SyndicateAPI
             app.UseMvc();
             app.UseWebSockets();
 
-            var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
-
-            app.MapWebSocketManager("/notifications", notifMessageHandler);
+            //var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
+            //app.MapWebSocketManager("/notifications", notifMessageHandler);
 
             var publishManager = serviceProvider.GetService<PublishManager>();
             publishManager.SetServices(serviceProvider.GetService<IPostService>());

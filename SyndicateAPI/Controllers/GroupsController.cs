@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -57,41 +58,186 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
-            if (user.Group == null)
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == user &&
+                    x.IsActive);
+
+            if (userGroupMember == null)
                 return Ok(new ResponseModel
                 {
+                    Success = false,
                     Message = "Вы не состоите в группировке"
                 });
 
             var posts = GroupPostService.GetAll()
-                .Where(x => x.Group == user.Group && x.Post.IsPublished)
+                .Where(x => x.Group == userGroupMember.Group && x.Post.IsPublished)
                 .Select(x => new GroupPostViewModel(x))
                 .ToList();
 
             RoleInGroup role;
             if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
-                x.Group == user.Group) != null)
+                x.Group == userGroupMember.Group) != null)
                 role = RoleInGroup.Creator;
             else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
-                x.Group == user.Group) != null)
-                role = RoleInGroup.Moderator;
+                x.Group == userGroupMember.Group) != null)
+            {
+                var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == userGroupMember.Group);
+
+                switch (moder.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        role = RoleInGroup.Member;
+                        break;
+                }
+            }
             else
                 role = RoleInGroup.Member;
 
             var subscribers = GroupSubscriptionService.GetAll()
-                .Where(x => x.Group == user.Group && x.IsActive)
+                .Where(x => x.Group == userGroupMember.Group && x.IsActive)
                 .Select(x => new UserViewModel(x.User))
                 .ToList();
 
             var members = GroupMemberService.GetAll()
-                .Where(x => x.Group == user.Group && x.IsActive)
-                .Select(x => new UserViewModel(x.User))
+                .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .Select(x => MemberToViewModel(x))
+                .ToList();
+
+            var joinRequests = GroupJoinRequestService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                .Select(x => new GroupJoinRequestViewModel(x))
                 .ToList();
 
             return Ok(new DataResponse<GroupViewModel>
             {
-                Data = new GroupViewModel(user.Group, posts, subscribers, members, role)
+                Data = new GroupViewModel(userGroupMember.Group, posts, subscribers, members, role, joinRequests)
             });
+        }
+
+        [HttpGet("{groupID}")]
+        public async Task<IActionResult> GetGroup(long groupID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var group = GroupService.Get(groupID);
+            if (group == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Group not found"
+                });
+
+            var posts = GroupPostService.GetAll()
+                .Where(x => x.Group == group && x.Post.IsPublished)
+                .Select(x => new GroupPostViewModel(x))
+                .ToList();
+
+            RoleInGroup role;
+            if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
+                x.Group == group) != null)
+                role = RoleInGroup.Creator;
+            else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                x.Group == group) != null)
+            {
+                var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == group);
+
+                switch (moder.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        role = RoleInGroup.Member;
+                        break;
+                }
+            }
+            else
+                role = 0;
+
+            var subscribers = GroupSubscriptionService.GetAll()
+                .Where(x => x.Group == group && x.IsActive)
+                .Select(x => new UserViewModel(x.User))
+                .ToList();
+
+            var members = GroupMemberService.GetAll()
+                .Where(x => x.Group == group && x.IsActive)
+                .Select(x => MemberToViewModel(x))
+                .ToList();
+
+            var joinRequests = GroupJoinRequestService.GetAll()
+                .Where(x => x.Group == group && x.Status == GroupJoinRequestStatus.New)
+                .Select(x => new GroupJoinRequestViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<GroupViewModel>
+            {
+                Data = new GroupViewModel(group, posts, subscribers, members, role, joinRequests)
+            });
+        }
+
+        private GroupMemberViewModel MemberToViewModel(GroupMember member)
+        {
+            var result = new GroupMemberViewModel(member);
+
+            var creator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (creator != null)
+            {
+                result.Role = RoleInGroup.Creator;
+                return result;
+            }
+
+            var moderator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (moderator != null)
+            {
+                switch (moderator.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        result.Role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        result.Role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        result.Role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        result.Role = RoleInGroup.Member;
+                        break;
+                }
+
+                return result;
+            }
+
+            return result;
         }
 
         [HttpPost]
@@ -145,9 +291,14 @@ namespace SyndicateAPI.Controllers
                 IsActive = true
             });
 
+            var members = GroupMemberService.GetAll()
+                .Where(x => x.Group == group && x.IsActive)
+                .Select(x => MemberToViewModel(x))
+                .ToList();
+
             return Ok(new DataResponse<GroupViewModel>
             {
-                Data = new GroupViewModel(group)
+                Data = new GroupViewModel(group, new List<GroupPostViewModel>(), new List<UserViewModel>(), members, RoleInGroup.Creator, new List<GroupJoinRequestViewModel>())
             });
         }
 
@@ -195,33 +346,57 @@ namespace SyndicateAPI.Controllers
             GroupService.Update(group);
 
             var posts = GroupPostService.GetAll()
-                .Where(x => x.Group == user.Group && x.Post.IsPublished)
+                .Where(x => x.Group == group && x.Post.IsPublished)
                 .Select(x => new GroupPostViewModel(x))
                 .ToList();
 
             RoleInGroup role;
             if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
-                x.Group == user.Group) != null)
+                x.Group == group) != null)
                 role = RoleInGroup.Creator;
             else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
-                x.Group == user.Group) != null)
-                role = RoleInGroup.Moderator;
+                x.Group == group) != null)
+            {
+                var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == group);
+
+                switch (moder.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        role = RoleInGroup.Member;
+                        break;
+                }
+            }
             else
                 role = RoleInGroup.Member;
 
             var subscribers = GroupSubscriptionService.GetAll()
-                .Where(x => x.Group == user.Group && x.IsActive)
+                .Where(x => x.Group == group && x.IsActive)
                 .Select(x => new UserViewModel(x.User))
                 .ToList();
 
             var members = GroupMemberService.GetAll()
-                .Where(x => x.Group == user.Group && x.IsActive)
-                .Select(x => new UserViewModel(x.User))
+                .Where(x => x.Group == group && x.IsActive)
+                .Select(x => MemberToViewModel(x))
+                .ToList();
+
+            var joinRequests = GroupJoinRequestService.GetAll()
+                .Where(x => x.Group == group && x.Status == GroupJoinRequestStatus.New)
+                .Select(x => new GroupJoinRequestViewModel(x))
                 .ToList();
 
             return Ok(new DataResponse<GroupViewModel>
             {
-                Data = new GroupViewModel(group, posts, subscribers, members, role)
+                Data = new GroupViewModel(group, posts, subscribers, members, role, joinRequests)
             });
         }
 
@@ -231,38 +406,257 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
-            if (user.Group == null)
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == user &&
+                    x.IsActive);
+
+            if (userGroupMember == null)
                 return Ok(new ResponseModel
                 {
+                    Success = false,
                     Message = "Вы не состоите в группировке"
                 });
-
-            if (user.Group.Owner.ID != user.ID)
+                
+            if (userGroupMember.Group.Owner.ID != user.ID)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
                     Message = "Вы не создатель группировки"
                 });
 
-            var members = GroupMemberService.GetAll()
-                .Where(x => x.Group == user.Group)
-                .ToList();
-
-            foreach (var member in members)
-                GroupMemberService.Delete(member);
+            var groupID = userGroupMember.Group.ID;
 
             var moderators = GroupModeratorService.GetAll()
-                .Where(x => x.Group == user.Group)
+                .Where(x => x.Group == userGroupMember.Group)
                 .ToList();
 
             foreach (var moderator in moderators)
                 GroupModeratorService.Delete(moderator);
 
-            var creator = GroupCreatorService.GetAll()
-                .FirstOrDefault(x => x.Group == user.Group);
+            var creators = GroupCreatorService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group)
+                .ToList();
 
-            if (creator != null)
+            foreach (var creator in creators)
                 GroupCreatorService.Delete(creator);
+
+            var members = GroupMemberService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group)
+                .ToList();
+
+            foreach (var member in members)
+                GroupMemberService.Delete(member);
+            
+            GroupService.Delete(groupID);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPost("moderator")]
+        public async Task<IActionResult> AddModerator([FromBody] AddUpdateModeratorRequest request)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var groupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (groupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не состоите в группировке"
+                });
+
+            var groupCreator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == groupMember.Group && x.IsActive);
+
+            var groupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == groupMember.Group && x.IsActive);
+
+            if (groupCreator == null && groupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            if (groupModerator != null && groupModerator.Level != GroupModeratorLevel.Level3)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            var requestUser = UserService.Get(request.UserID);
+            if (requestUser == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == requestUser &&
+                    x.Group == groupMember.Group &&
+                    x.IsActive);
+
+            if (userGroupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не состоит в группировке"
+                });
+
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == requestUser &&
+                    x.Group == userGroupMember.Group);
+
+            if (userGroupModerator == null)
+            {
+                userGroupModerator = new GroupModerator
+                {
+                    User = userGroupMember.User,
+                    Group = userGroupMember.Group,
+                    Level = request.Level,
+                    IsActive = true
+                };
+
+                GroupModeratorService.Create(userGroupModerator);
+            }
+
+            userGroupModerator.IsActive = true;
+            GroupModeratorService.Update(userGroupModerator);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpPut("moderator")]
+        public async Task<IActionResult> UpdateModerator([FromBody] AddUpdateModeratorRequest request)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var groupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (groupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не состоите в группировке"
+                });
+
+            var groupCreator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == groupMember.Group && x.IsActive);
+
+            var groupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == groupMember.Group && x.IsActive);
+
+            if (groupCreator == null && groupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            if (groupModerator != null && groupModerator.Level != GroupModeratorLevel.Level3)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            var requestUser = UserService.Get(request.UserID);
+            if (requestUser == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == requestUser &&
+                    x.Group == groupMember.Group &&
+                    x.IsActive);
+
+            if (userGroupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не состоит в группировке"
+                });
+
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == requestUser &&
+                    x.Group == userGroupMember.Group);
+
+            if (userGroupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не является модератором"
+                });
+
+            userGroupModerator.Level = request.Level;
+            GroupModeratorService.Update(userGroupModerator);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpDelete("moderator")]
+        public async Task<IActionResult> RemoveModerator([FromBody] RemoveModeratorRequest request)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var groupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (groupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не состоите в группировке"
+                });
+
+            var groupCreator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == groupMember.Group && x.IsActive);
+
+            var groupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == groupMember.Group && x.IsActive);
+
+            if (groupCreator == null && groupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            if (groupModerator != null && groupModerator.Level != GroupModeratorLevel.Level3)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            var requestUser = UserService.Get(request.UserID);
+            if (requestUser == null)
+                return Ok(new ResponseModel());
+
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == requestUser && x.Group == groupMember.Group && x.IsActive);
+
+            if (userGroupModerator == null)
+                return Ok(new ResponseModel());
+
+            userGroupModerator.IsActive = false;
+            GroupModeratorService.Update(userGroupModerator);
 
             return Ok(new ResponseModel());
         }
@@ -358,14 +752,25 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы владелец группировки"
                 });
 
-            var request = new GroupJoinRequest
-            {
-                User = user,
-                Group = group,
-                Status = GroupJoinRequestStatus.New
-            };
+            var request = GroupJoinRequestService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == user &&
+                    x.Group == group);
 
-            GroupJoinRequestService.Create(request);
+            if (request == null)
+            {
+                request = new GroupJoinRequest
+                {
+                    User = user,
+                    Group = group,
+                    Status = GroupJoinRequestStatus.New
+                };
+
+                GroupJoinRequestService.Create(request);
+            }
+
+            request.Status = GroupJoinRequestStatus.New;
+            GroupJoinRequestService.Update(request);
 
             return Ok(new ResponseModel());
         }
@@ -401,8 +806,7 @@ namespace SyndicateAPI.Controllers
                     Message = "Невозможно отменить обработанную заявку"
                 });
 
-            GroupJoinRequestService.Delete
-(request);
+            GroupJoinRequestService.Delete(request);
 
             return Ok(new ResponseModel());
         }
@@ -430,7 +834,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var moderator = GroupModeratorService.GetAll()
-                .FirstOrDefault(x => x.Group == group && x.User == user);
+                .FirstOrDefault(x => x.Group == group && x.User == user && x.IsActive);
 
             if (moderator == null && group.Owner != user)
                 return BadRequest(new ResponseModel
@@ -447,9 +851,10 @@ namespace SyndicateAPI.Controllers
                 });
 
             joinRequest.Status = GroupJoinRequestStatus.Approved;
+            GroupJoinRequestService.Update(joinRequest);
 
             var groupMember = GroupMemberService.GetAll()
-                .FirstOrDefault(x => x.User == joinRequest.User);
+                .FirstOrDefault(x => x.User == joinRequest.User && x.Group == group);
 
             if (groupMember == null)
             {
@@ -492,7 +897,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var moderator = GroupModeratorService.GetAll()
-                .FirstOrDefault(x => x.Group == group && x.User == user);
+                .FirstOrDefault(x => x.Group == group && x.User == user && x.IsActive);
 
             if (moderator == null && group.Owner != user)
                 return BadRequest(new ResponseModel
@@ -509,6 +914,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             joinRequest.Status = GroupJoinRequestStatus.Rejected;
+            GroupJoinRequestService.Update(joinRequest);
 
             return Ok(new ResponseModel());
         }
@@ -528,7 +934,7 @@ namespace SyndicateAPI.Controllers
                 });
 
             var groupMember = GroupMemberService.GetAll()
-                .FirstOrDefault(x => x.User == user);
+                .FirstOrDefault(x => x.User == user && x.Group == group && x.IsActive);
 
             if (groupMember == null)
                 return BadRequest(new ResponseModel
@@ -543,6 +949,47 @@ namespace SyndicateAPI.Controllers
             return Ok(new ResponseModel());
         }
 
-        //[HttpPost("{groupID}/members/{memberID}")]
+        [HttpDelete("member/{memberID}")]
+        public async Task<IActionResult> DeleteFromGroup(long memberID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var groupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (groupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Group not found"
+                });
+
+            var moderator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.Group == groupMember.Group && x.User == user && x.IsActive);
+
+            if (moderator == null && groupMember.Group.Owner != user)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            if (moderator != null && moderator.Level != GroupModeratorLevel.Level3)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Недостаточно прав"
+                });
+
+            var userGroupMember = GroupMemberService.Get(memberID);
+            if (userGroupMember == null)
+                return Ok(new ResponseModel());
+
+            userGroupMember.IsActive = false;
+            GroupMemberService.Update(userGroupMember);
+
+            return Ok(new ResponseModel());
+        }
     }
 }

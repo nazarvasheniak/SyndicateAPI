@@ -27,9 +27,9 @@ namespace SyndicateAPI.Controllers
         private IPostCommentService PostCommentService { get; set; }
         private IPostCommentLikeService PostCommentLikeService { get; set; }
         private IGroupPostService GroupPostService { get; set; }
+        private IGroupMemberService GroupMemberService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
-        private NotificationsMessageHandler NotificationService { get; set; }
 
         public FeedController([FromBody]
             IUserService userService,
@@ -39,9 +39,9 @@ namespace SyndicateAPI.Controllers
             IPostCommentService postCommentService,
             IPostCommentLikeService postCommentLikeService,
             IGroupPostService groupPostService,
+            IGroupMemberService groupMemberService,
             IRatingLevelService ratingLevelService,
-            IUserSubscriptionService userSubscriptionService,
-            NotificationsMessageHandler notificationService)
+            IUserSubscriptionService userSubscriptionService)
         {
             UserService = userService;
             FileService = fileService;
@@ -50,9 +50,9 @@ namespace SyndicateAPI.Controllers
             PostCommentService = postCommentService;
             PostCommentLikeService = postCommentLikeService;
             GroupPostService = groupPostService;
+            GroupMemberService = groupMemberService;
             RatingLevelService = ratingLevelService;
             UserSubscriptionService = userSubscriptionService;
-            NotificationService = notificationService;
         }
 
         private PostViewModel PostToViewModel(Post post)
@@ -160,7 +160,7 @@ namespace SyndicateAPI.Controllers
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var subsriptions = UserSubscriptionService.GetAll()
-                .Where(x => x.Subscriber == user)
+                .Where(x => x.Subscriber == user && x.IsActive)
                 .ToList();
 
             var feed = new List<PostViewModel>();
@@ -197,14 +197,17 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
-            if (user.Group == null)
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (userGroupMember == null)
                 return Ok(new ResponseModel
                 {
                     Message = "Вы не состоите в группировке"
                 });
 
             var feed = GroupPostService.GetAll()
-                .Where(x => x.Group == user.Group)
+                .Where(x => x.Group == userGroupMember.Group)
                 .Select(x => new GroupPostViewModel(x))
                 .ToList();
 
@@ -294,14 +297,17 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
-            if (user.Group == null)
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (userGroupMember == null)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "User not in group"
+                    Message = "Вы не состоите в группировке"
                 });
 
-            if (user != user.Group.Owner)
+            if (user != userGroupMember.Group.Owner)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
@@ -330,7 +336,7 @@ namespace SyndicateAPI.Controllers
             var groupPost = new GroupPost
             {
                 Post = post,
-                Group = user.Group
+                Group = userGroupMember.Group
             };
 
             GroupPostService.Create(groupPost);
@@ -430,7 +436,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -457,7 +463,7 @@ namespace SyndicateAPI.Controllers
                 Message = postID
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new ResponseModel());
         }
@@ -525,7 +531,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -588,7 +594,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -661,7 +667,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -741,7 +747,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -827,7 +833,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -905,7 +911,7 @@ namespace SyndicateAPI.Controllers
                 Message = result
             });
 
-            await NotificationService.SendMessageToAllAsync(socketMessage);
+            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new DataResponse<PostViewModel>
             {

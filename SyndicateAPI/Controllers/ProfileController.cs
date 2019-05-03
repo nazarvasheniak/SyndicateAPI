@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
@@ -27,6 +28,12 @@ namespace SyndicateAPI.Controllers
         private IVehicleService VehicleService { get; set; }
         private IVehiclePhotoService VehiclePhotoService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
+        private IGroupMemberService GroupMemberService { get; set; }
+        private IGroupPostService GroupPostService { get; set; }
+        private IGroupSubscriptionService GroupSubscriptionService { get; set; }
+        private IGroupModeratorService GroupModeratorService { get; set; }
+        private IGroupCreatorService GroupCreatorService { get; set; }
+        private IGroupJoinRequestService GroupJoinRequestService { get; set; }
 
         public ProfileController([FromServices]
             IUserService userService,
@@ -38,7 +45,13 @@ namespace SyndicateAPI.Controllers
             ICityService cityService,
             IVehicleService vehicleService,
             IVehiclePhotoService vehiclePhotoService,
-            IUserSubscriptionService userSubscriptionService)
+            IUserSubscriptionService userSubscriptionService,
+            IGroupMemberService groupMemberService,
+            IGroupPostService groupPostService,
+            IGroupSubscriptionService groupSubscriptionService,
+            IGroupModeratorService groupModeratorService,
+            IGroupCreatorService groupCreatorService,
+            IGroupJoinRequestService groupJoinRequestService)
         {
             UserService = userService;
             UserTempService = userTempService;
@@ -50,6 +63,12 @@ namespace SyndicateAPI.Controllers
             VehicleService = vehicleService;
             VehiclePhotoService = vehiclePhotoService;
             UserSubscriptionService = userSubscriptionService;
+            GroupMemberService = groupMemberService;
+            GroupPostService = groupPostService;
+            GroupSubscriptionService = groupSubscriptionService;
+            GroupModeratorService = groupModeratorService;
+            GroupCreatorService = groupCreatorService;
+            GroupJoinRequestService = groupJoinRequestService;
         }
 
         [HttpGet]
@@ -181,6 +200,13 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
+            if (request.SubjectID.Equals(user.ID))
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Same ID error"
+                });
+
             var subject = UserService.Get(request.SubjectID);
             if (subject == null)
                 return BadRequest(new ResponseModel
@@ -210,6 +236,94 @@ namespace SyndicateAPI.Controllers
             return Ok(new ResponseModel());
         }
 
+        [HttpPost("{id}/subscribe")]
+        public async Task<IActionResult> SubscribeToUser(long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            if (id.Equals(user.ID))
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Same ID error"
+                });
+
+            var subject = UserService.Get(id);
+            if (subject == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Subject not found"
+                });
+
+            var subscription = UserSubscriptionService.GetAll()
+                .FirstOrDefault(x => x.Subscriber == user && x.Subject == subject);
+
+            if (subscription == null)
+            {
+                subscription = new UserSubscription
+                {
+                    Subject = subject,
+                    Subscriber = user,
+                    IsActive = true
+                };
+
+                UserSubscriptionService.Create(subscription);
+            }
+
+            subscription.IsActive = true;
+            UserSubscriptionService.Update(subscription);
+
+            return Ok(new ResponseModel());
+        }
+
+        private GroupMemberViewModel MemberToViewModel(GroupMember member)
+        {
+            var result = new GroupMemberViewModel(member);
+
+            var creator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (creator != null)
+            {
+                result.Role = RoleInGroup.Creator;
+                return result;
+            }
+
+            var moderator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (moderator != null)
+            {
+                switch (moderator.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        result.Role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        result.Role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        result.Role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        result.Role = RoleInGroup.Member;
+                        break;
+                }
+
+                return result;
+            }
+
+            return result;
+        }
+
         [HttpDelete("subscribe")]
         public async Task<IActionResult> Unsubscribe([FromBody] SubscribeRequest request)
         {
@@ -228,16 +342,33 @@ namespace SyndicateAPI.Controllers
                 .FirstOrDefault(x => x.Subscriber == user && x.Subject == subject);
 
             if (subscription == null)
-            {
-                subscription = new UserSubscription
-                {
-                    Subject = subject,
-                    Subscriber = user,
-                    IsActive = false
-                };
+                return Ok(new ResponseModel());
 
-                UserSubscriptionService.Create(subscription);
-            }
+            subscription.IsActive = false;
+            UserSubscriptionService.Update(subscription);
+
+            return Ok(new ResponseModel());
+        }
+
+        [HttpDelete("{id}/subscribe")]
+        public async Task<IActionResult> Unsubscribe(long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var subject = UserService.Get(id);
+            if (subject == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Subject not found"
+                });
+
+            var subscription = UserSubscriptionService.GetAll()
+                .FirstOrDefault(x => x.Subscriber == user && x.Subject == subject);
+
+            if (subscription == null)
+                return Ok(new ResponseModel());
 
             subscription.IsActive = false;
             UserSubscriptionService.Update(subscription);
@@ -464,8 +595,63 @@ namespace SyndicateAPI.Controllers
                 Vehicles = viewVehicles
             };
 
-            if (user.Group != null)
-                profile.GroupName = user.Group.Name;
+            var groupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (groupMember != null)
+            {
+                var posts = GroupPostService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.Post.IsPublished)
+                    .Select(x => new GroupPostViewModel(x))
+                    .ToList();
+
+                RoleInGroup role;
+                if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == groupMember.Group) != null)
+                    role = RoleInGroup.Creator;
+                else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == groupMember.Group) != null)
+                {
+                    var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                        x.Group == groupMember.Group);
+
+                    switch (moder.Level)
+                    {
+                        case GroupModeratorLevel.Level1:
+                            role = RoleInGroup.ModeratorLevel1;
+                            break;
+                        case GroupModeratorLevel.Level2:
+                            role = RoleInGroup.ModeratorLevel2;
+                            break;
+                        case GroupModeratorLevel.Level3:
+                            role = RoleInGroup.ModeratorLevel3;
+                            break;
+                        default:
+                            role = RoleInGroup.Member;
+                            break;
+                    }
+                }
+                else
+                    role = RoleInGroup.Member;
+
+                var subscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var members = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.IsActive)
+                    .Select(x => MemberToViewModel(x))
+                    .ToList();
+
+                var joinRequests = GroupJoinRequestService.GetAll()
+                    .Where(x => x.Group == groupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                    .Select(x => new GroupJoinRequestViewModel(x))
+                    .ToList();
+
+                profile.GroupName = groupMember.Group.Name;
+                profile.Group = new GroupViewModel(groupMember.Group, posts, subscribers, members, role, joinRequests);
+            }
 
             if (user.Avatar != null)
                 profile.AvatarUrl = user.Avatar.Url;

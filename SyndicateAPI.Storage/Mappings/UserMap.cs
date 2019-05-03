@@ -13,7 +13,6 @@ namespace SyndicateAPI.Storage.Mappings
 
             References(e => e.Avatar, "id_avatar");
             References(e => e.Person, "id_person");
-            References(e => e.Group, "id_group");
 
             Map(u => u.Login, "login").Unique();
             Map(u => u.Password, "password");

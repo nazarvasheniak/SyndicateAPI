@@ -17,7 +17,8 @@ namespace SyndicateAPI.Models
         public RoleInGroup Role { get; set; }
         public List<GroupPostViewModel> Posts { get; set; }
         public List<UserViewModel> Subscribers { get; set; }
-        public List<UserViewModel> Members { get; set; }
+        public List<GroupMemberViewModel> Members { get; set; }
+        public List<GroupJoinRequestViewModel> JoinRequests { get; set; }
 
         public GroupViewModel() { }
 
@@ -34,11 +35,12 @@ namespace SyndicateAPI.Models
                 Owner = new UserViewModel(group.Owner);
                 Posts = new List<GroupPostViewModel>();
                 Subscribers = new List<UserViewModel>();
-                Members = new List<UserViewModel>();
+                Members = new List<GroupMemberViewModel>();
+                JoinRequests = new List<GroupJoinRequestViewModel>();
             }
         }
 
-        public GroupViewModel(Group group, IEnumerable<GroupPostViewModel> posts, IEnumerable<UserViewModel> subscribers, IEnumerable<UserViewModel> members, RoleInGroup role)
+        public GroupViewModel(Group group, IEnumerable<GroupPostViewModel> posts, IEnumerable<UserViewModel> subscribers, IEnumerable<GroupMemberViewModel> members, RoleInGroup role, IEnumerable<GroupJoinRequestViewModel> joinRequests)
         {
             if (group != null)
             {
@@ -52,39 +54,12 @@ namespace SyndicateAPI.Models
                 Owner = new UserViewModel(group.Owner);
                 Subscribers = subscribers.ToList();
                 Members = members.ToList();
+                JoinRequests = joinRequests.ToList();
             }
 
             Posts = posts
                 .Where(x => x.Post.IsPublished)
                 .ToList();
-        }
-
-        public GroupViewModel(Group group, IEnumerable<GroupPost> posts, IEnumerable<User> subscribers, IEnumerable<User> members, RoleInGroup role)
-        {
-            if (group != null)
-            {
-                ID = group.ID;
-                Name = group.Name;
-                ShortDesc = group.ShortDesc;
-                FullDesc = group.FullDesc;
-                Information = group.Information;
-                Role = role;
-                Avatar = new FileViewModel(group.Avatar);
-                Owner = new UserViewModel(group.Owner);
-
-                Posts = posts
-                    .Where(x => x.Post.IsPublished)
-                    .Select(x => new GroupPostViewModel(x))
-                    .ToList();
-
-                Subscribers = subscribers
-                    .Select(x => new UserViewModel(x))
-                    .ToList();
-
-                Members = members
-                    .Select(x => new UserViewModel(x))
-                    .ToList();
-            }
         }
     }
 }

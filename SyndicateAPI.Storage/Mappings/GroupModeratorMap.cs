@@ -16,6 +16,7 @@ namespace SyndicateAPI.Storage.Mappings
 
             Map(u => u.Level, "moderator_level").CustomType<GroupModeratorLevel>().Not.Nullable();
             Map(u => u.IsActive, "is_active").Not.Nullable();
+            Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }
 }
