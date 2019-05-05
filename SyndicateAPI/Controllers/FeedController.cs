@@ -28,6 +28,10 @@ namespace SyndicateAPI.Controllers
         private IPostCommentLikeService PostCommentLikeService { get; set; }
         private IGroupPostService GroupPostService { get; set; }
         private IGroupMemberService GroupMemberService { get; set; }
+        private IGroupCreatorService GroupCreatorService { get; set; }
+        private IGroupModeratorService GroupModeratorService { get; set; }
+        private IGroupSubscriptionService GroupSubscriptionService { get; set; }
+        private IGroupJoinRequestService GroupJoinRequestService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
 
@@ -40,6 +44,10 @@ namespace SyndicateAPI.Controllers
             IPostCommentLikeService postCommentLikeService,
             IGroupPostService groupPostService,
             IGroupMemberService groupMemberService,
+            IGroupCreatorService groupCreatorService,
+            IGroupModeratorService groupModeratorService,
+            IGroupSubscriptionService groupSubscriptionService,
+            IGroupJoinRequestService groupJoinRequestService,
             IRatingLevelService ratingLevelService,
             IUserSubscriptionService userSubscriptionService)
         {
@@ -51,6 +59,10 @@ namespace SyndicateAPI.Controllers
             PostCommentLikeService = postCommentLikeService;
             GroupPostService = groupPostService;
             GroupMemberService = groupMemberService;
+            GroupCreatorService = groupCreatorService;
+            GroupModeratorService = groupModeratorService;
+            GroupSubscriptionService = groupSubscriptionService;
+            GroupJoinRequestService = groupJoinRequestService;
             RatingLevelService = ratingLevelService;
             UserSubscriptionService = userSubscriptionService;
         }
@@ -87,6 +99,55 @@ namespace SyndicateAPI.Controllers
             }
 
             var result = new PostViewModel(post)
+            {
+                Comments = viewComments,
+                LikesCount = (ulong)likes.Count
+            };
+
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                result.IsLiked = false;
+            else
+                result.IsLiked = true;
+
+            return result;
+        }
+
+        private PostViewModel PostToViewModel(PostViewModel post)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var dbPost = PostService.Get(post.ID);
+            if (dbPost == null)
+                return null;
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == dbPost)
+                .ToList();
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == dbPost)
+                .ToList();
+
+            var viewComments = new List<PostCommentViewModel>();
+
+            foreach (var c in comments)
+            {
+                var isLikedComment = false;
+                var commentLikes = PostCommentLikeService.GetAll()
+                    .Where(x => x.Comment == c)
+                    .ToList();
+
+                var myLike = PostCommentLikeService.GetAll()
+                    .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                if (myLike != null)
+                    isLikedComment = true;
+
+                viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+            }
+
+            var result = new PostViewModel(dbPost)
             {
                 Comments = viewComments,
                 LikesCount = (ulong)likes.Count
@@ -152,6 +213,52 @@ namespace SyndicateAPI.Controllers
             return result;
         }
 
+        private GroupMemberViewModel MemberToViewModel(GroupMember member)
+        {
+            var result = new GroupMemberViewModel(member);
+
+            var creator = GroupCreatorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (creator != null)
+            {
+                result.Role = RoleInGroup.Creator;
+                return result;
+            }
+
+            var moderator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x =>
+                    x.User == member.User &&
+                    x.Group == member.Group &&
+                    x.IsActive);
+
+            if (moderator != null)
+            {
+                switch (moderator.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        result.Role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        result.Role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        result.Role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        result.Role = RoleInGroup.Member;
+                        break;
+                }
+
+                return result;
+            }
+
+            return result;
+        }
+
         [HttpGet("user")]
         public async Task<IActionResult> GetUserFeed([FromQuery] GetListRequest request)
         {
@@ -168,14 +275,20 @@ namespace SyndicateAPI.Controllers
             foreach (var subscription in subsriptions)
             {
                 var posts = PostToViewModel(PostService.GetAll()
-                    .Where(x => x.Author == subscription.Subject && x.IsPublished && x.Type == PostType.User));
+                    .Where(x => 
+                        x.Author == subscription.Subject &&
+                        x.Type == PostType.User &&
+                        x.IsPublished));
 
                 if (posts != null && posts.Count != 0)
                     feed.AddRange(posts);
             }
 
             var myPosts = PostToViewModel(PostService.GetAll()
-                .Where(x => x.Author == user && x.IsPublished));
+                .Where(x => 
+                    x.Author == user &&
+                    x.Type == PostType.User &&
+                    x.IsPublished));
 
             feed.AddRange(myPosts);
 
@@ -206,16 +319,72 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы не состоите в группировке"
                 });
 
-            var feed = GroupPostService.GetAll()
+            var posts = GroupPostService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group)
-                .Select(x => new GroupPostViewModel(x))
                 .ToList();
+
+            var feed = new List<GroupPostViewModel>();
+
+            RoleInGroup role;
+            if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
+                x.Group == userGroupMember.Group) != null)
+                role = RoleInGroup.Creator;
+            else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                x.Group == userGroupMember.Group) != null)
+            {
+                var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == userGroupMember.Group);
+
+                switch (moder.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        role = RoleInGroup.Member;
+                        break;
+                }
+            }
+            else
+                role = RoleInGroup.Member;
+
+            var subscribers = GroupSubscriptionService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .Select(x => new UserViewModel(x.User))
+                .ToList();
+
+            var members = GroupMemberService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .Select(x => MemberToViewModel(x))
+                .ToList();
+
+            var joinRequests = GroupJoinRequestService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                .Select(x => new GroupJoinRequestViewModel(x))
+                .ToList();
+
+            foreach (var post in posts)
+                feed.Add(new GroupPostViewModel(post, subscribers, members, role, joinRequests));
 
             if (feed != null && feed.Count != 0)
                 feed = feed.OrderByDescending(x => x.Post.PublishTime)
                     .Skip((request.PageNumber - 1) * request.PageCount)
                     .Take(request.PageCount)
                     .ToList();
+
+            feed = feed
+                .Select(x =>
+                {
+                    x.Post = PostToViewModel(x.Post);
+                    return x;
+                })
+                .ToList();
 
             return Ok(new DataResponse<List<GroupPostViewModel>>
             {
@@ -314,11 +483,24 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы не можете публиковать посты в данной группировке"
                 });
 
+            DateTime publishTime;
+
+            if (request.PublishTime != null && request.PublishTime != DateTime.MinValue)
+            {
+                publishTime = TimeZoneInfo.ConvertTimeToUtc(request.PublishTime.ToUniversalTime());
+                if (request.PublishTime.IsDaylightSavingTime())
+                    publishTime = publishTime.Subtract(TimeSpan.FromHours(1));
+            }
+            else
+            {
+                publishTime = DateTime.UtcNow;
+            }
+
             var post = new Post
             {
                 Text = request.Text,
                 Type = PostType.Group,
-                PublishTime = request.PublishTime,
+                PublishTime = publishTime,
                 Author = user,
                 RatingScore = request.RatingScore,
                 Image = image,
