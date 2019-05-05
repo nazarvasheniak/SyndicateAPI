@@ -106,16 +106,19 @@ namespace SyndicateAPI.Controllers
 
             var subscribers = GroupSubscriptionService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new UserViewModel(x.User))
                 .ToList();
 
             var members = GroupMemberService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => MemberToViewModel(x))
                 .ToList();
 
             var joinRequests = GroupJoinRequestService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new GroupJoinRequestViewModel(x))
                 .ToList();
 
@@ -175,16 +178,19 @@ namespace SyndicateAPI.Controllers
 
             var subscribers = GroupSubscriptionService.GetAll()
                 .Where(x => x.Group == group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new UserViewModel(x.User))
                 .ToList();
 
             var members = GroupMemberService.GetAll()
                 .Where(x => x.Group == group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => MemberToViewModel(x))
                 .ToList();
 
             var joinRequests = GroupJoinRequestService.GetAll()
                 .Where(x => x.Group == group && x.Status == GroupJoinRequestStatus.New)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new GroupJoinRequestViewModel(x))
                 .ToList();
 
@@ -381,16 +387,19 @@ namespace SyndicateAPI.Controllers
 
             var subscribers = GroupSubscriptionService.GetAll()
                 .Where(x => x.Group == group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new UserViewModel(x.User))
                 .ToList();
 
             var members = GroupMemberService.GetAll()
                 .Where(x => x.Group == group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => MemberToViewModel(x))
                 .ToList();
 
             var joinRequests = GroupJoinRequestService.GetAll()
                 .Where(x => x.Group == group && x.Status == GroupJoinRequestStatus.New)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new GroupJoinRequestViewModel(x))
                 .ToList();
 
@@ -946,6 +955,15 @@ namespace SyndicateAPI.Controllers
             groupMember.IsActive = false;
             GroupMemberService.Update(groupMember);
 
+            var groupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == group && x.IsActive);
+
+            if (groupModerator != null)
+            {
+                groupModerator.IsActive = false;
+                GroupModeratorService.Update(groupModerator);
+            }
+
             return Ok(new ResponseModel());
         }
 
@@ -988,6 +1006,15 @@ namespace SyndicateAPI.Controllers
 
             userGroupMember.IsActive = false;
             GroupMemberService.Update(userGroupMember);
+
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == userGroupMember.User && x.Group == userGroupMember.Group && x.IsActive);
+
+            if (userGroupModerator != null)
+            {
+                userGroupModerator.IsActive = false;
+                GroupModeratorService.Update(userGroupModerator);
+            }
 
             return Ok(new ResponseModel());
         }

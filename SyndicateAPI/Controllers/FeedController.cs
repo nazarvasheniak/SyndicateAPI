@@ -313,17 +313,34 @@ namespace SyndicateAPI.Controllers
             var userGroupMember = GroupMemberService.GetAll()
                 .FirstOrDefault(x => x.User == user && x.IsActive);
 
-            if (userGroupMember == null)
-                return Ok(new ResponseModel
-                {
-                    Message = "Вы не состоите в группировке"
-                });
-
-            var posts = GroupPostService.GetAll()
-                .Where(x => x.Group == userGroupMember.Group)
+            var userGroupSubscriptions = GroupSubscriptionService.GetAll()
+                .Where(x => x.User == user && x.IsActive)
                 .ToList();
 
             var feed = new List<GroupPostViewModel>();
+            var posts = new List<GroupPost>();
+
+            if (userGroupMember != null)
+            {
+                var groupMemberPosts = GroupPostService.GetAll()
+                    .Where(x => x.Group == userGroupMember.Group)
+                    .ToList();
+
+                foreach (var p in groupMemberPosts)
+                    posts.Add(p);
+            }
+
+            foreach (var s in userGroupSubscriptions)
+            {
+                var ps = GroupPostService.GetAll()
+                    .Where(x => x.Group == s.Group)
+                    .ToList();
+
+                foreach (var p in ps)
+                    posts.Add(p);
+            }
+
+            posts = new List<GroupPost>(new HashSet<GroupPost>(posts));
 
             RoleInGroup role;
             if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
@@ -356,16 +373,19 @@ namespace SyndicateAPI.Controllers
 
             var subscribers = GroupSubscriptionService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new UserViewModel(x.User))
                 .ToList();
 
             var members = GroupMemberService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => MemberToViewModel(x))
                 .ToList();
 
             var joinRequests = GroupJoinRequestService.GetAll()
                 .Where(x => x.Group == userGroupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                .OrderByDescending(x => x.User.PointsCount)
                 .Select(x => new GroupJoinRequestViewModel(x))
                 .ToList();
 
@@ -476,7 +496,17 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы не состоите в группировке"
                 });
 
-            if (user != userGroupMember.Group.Owner)
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == userGroupMember.Group && x.IsActive);
+
+            if (user != userGroupMember.Group.Owner && userGroupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете публиковать посты в данной группировке"
+                });
+
+            if (userGroupModerator != null && userGroupModerator.Level == GroupModeratorLevel.Level1)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
@@ -549,6 +579,33 @@ namespace SyndicateAPI.Controllers
                 {
                     Success = false,
                     Message = "Post ID error"
+                });
+
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (userGroupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не состоите в группировке"
+                });
+
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == userGroupMember.Group && x.IsActive);
+
+            if (user != userGroupMember.Group.Owner && userGroupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете редактировать посты в данной группировке"
+                });
+
+            if (userGroupModerator != null && userGroupModerator.Level == GroupModeratorLevel.Level1)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете редактировать посты в данной группировке"
                 });
 
             if (request.Text != null && request.Text != post.Text)
@@ -629,12 +686,42 @@ namespace SyndicateAPI.Controllers
         [HttpDelete("{postID}")]
         public async Task<IActionResult> DeletePost(long postID)
         {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
             var post = PostService.Get(postID);
             if (post == null)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
                     Message = "Post ID error"
+                });
+
+            var userGroupMember = GroupMemberService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (userGroupMember == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не состоите в группировке"
+                });
+
+            var userGroupModerator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.Group == userGroupMember.Group && x.IsActive);
+
+            if (user != userGroupMember.Group.Owner && userGroupModerator == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете удалять посты в данной группировке"
+                });
+
+            if (userGroupModerator != null && userGroupModerator.Level == GroupModeratorLevel.Level1)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете удалять посты в данной группировке"
                 });
 
             PostService.Delete(postID);
@@ -879,7 +966,10 @@ namespace SyndicateAPI.Controllers
                     Message = "Comment ID error"
                 });
 
-            if (comment.Author != user)
+            var moderator = GroupModeratorService.GetAll()
+                .FirstOrDefault(x => x.User == user && x.IsActive);
+
+            if (comment.Author != user && moderator == null)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,

@@ -34,6 +34,10 @@ namespace SyndicateAPI.Controllers
         private IGroupModeratorService GroupModeratorService { get; set; }
         private IGroupCreatorService GroupCreatorService { get; set; }
         private IGroupJoinRequestService GroupJoinRequestService { get; set; }
+        private IPostService PostService { get; set; }
+        private IPostLikeService PostLikeService { get; set; }
+        private IPostCommentService PostCommentService { get; set; }
+        private IPostCommentLikeService PostCommentLikeService { get; set; }
 
         public ProfileController([FromServices]
             IUserService userService,
@@ -51,7 +55,11 @@ namespace SyndicateAPI.Controllers
             IGroupSubscriptionService groupSubscriptionService,
             IGroupModeratorService groupModeratorService,
             IGroupCreatorService groupCreatorService,
-            IGroupJoinRequestService groupJoinRequestService)
+            IGroupJoinRequestService groupJoinRequestService,
+            IPostService postService,
+            IPostLikeService postLikeService,
+            IPostCommentService postCommentService,
+            IPostCommentLikeService postCommentLikeService)
         {
             UserService = userService;
             UserTempService = userTempService;
@@ -69,6 +77,10 @@ namespace SyndicateAPI.Controllers
             GroupModeratorService = groupModeratorService;
             GroupCreatorService = groupCreatorService;
             GroupJoinRequestService = groupJoinRequestService;
+            PostService = postService;
+            PostLikeService = postLikeService;
+            PostCommentService = postCommentService;
+            PostCommentLikeService = postCommentLikeService;
         }
 
         [HttpGet]
@@ -278,6 +290,152 @@ namespace SyndicateAPI.Controllers
             return Ok(new ResponseModel());
         }
 
+        private PostViewModel PostToViewModel(Post post)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var viewComments = new List<PostCommentViewModel>();
+
+            foreach (var c in comments)
+            {
+                var isLikedComment = false;
+                var commentLikes = PostCommentLikeService.GetAll()
+                    .Where(x => x.Comment == c)
+                    .ToList();
+
+                var myLike = PostCommentLikeService.GetAll()
+                    .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                if (myLike != null)
+                    isLikedComment = true;
+
+                viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+            }
+
+            var result = new PostViewModel(post)
+            {
+                Comments = viewComments,
+                LikesCount = (ulong)likes.Count
+            };
+
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                result.IsLiked = false;
+            else
+                result.IsLiked = true;
+
+            return result;
+        }
+
+        private PostViewModel PostToViewModel(PostViewModel post)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var dbPost = PostService.Get(post.ID);
+            if (dbPost == null)
+                return null;
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == dbPost)
+                .ToList();
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == dbPost)
+                .ToList();
+
+            var viewComments = new List<PostCommentViewModel>();
+
+            foreach (var c in comments)
+            {
+                var isLikedComment = false;
+                var commentLikes = PostCommentLikeService.GetAll()
+                    .Where(x => x.Comment == c)
+                    .ToList();
+
+                var myLike = PostCommentLikeService.GetAll()
+                    .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                if (myLike != null)
+                    isLikedComment = true;
+
+                viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+            }
+
+            var result = new PostViewModel(dbPost)
+            {
+                Comments = viewComments,
+                LikesCount = (ulong)likes.Count
+            };
+
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                result.IsLiked = false;
+            else
+                result.IsLiked = true;
+
+            return result;
+        }
+
+        private List<PostViewModel> PostToViewModel(IEnumerable<Post> posts)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var result = new List<PostViewModel>();
+
+            foreach (var post in posts)
+            {
+                var likes = PostLikeService.GetAll()
+                    .Where(x => x.Post == post)
+                    .ToList();
+
+                var comments = PostCommentService.GetAll()
+                    .Where(x => x.Post == post)
+                    .ToList();
+
+                var viewComments = new List<PostCommentViewModel>();
+
+                foreach (var c in comments)
+                {
+                    var isLikedComment = false;
+                    var commentLikes = PostCommentLikeService.GetAll()
+                        .Where(x => x.Comment == c)
+                        .ToList();
+
+                    var myLike = PostCommentLikeService.GetAll()
+                        .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                    if (myLike != null)
+                        isLikedComment = true;
+
+                    viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+                }
+
+                var postItem = new PostViewModel(post)
+                {
+                    Comments = viewComments,
+                    LikesCount = (ulong)likes.Count
+                };
+
+                if (likes.FirstOrDefault(x => x.User == user) == null)
+                    postItem.IsLiked = false;
+                else
+                    postItem.IsLiked = true;
+
+                result.Add(postItem);
+            }
+
+            return result;
+        }
+
         private GroupMemberViewModel MemberToViewModel(GroupMember member)
         {
             var result = new GroupMemberViewModel(member);
@@ -386,6 +544,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscribers = UserSubscriptionService.GetAll()
                     .Where(x => x.Subject == user && x.IsActive)
+                    .OrderByDescending(x => x.Subscriber.PointsCount)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -398,6 +557,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscribers = UserSubscriptionService.GetAll()
                     .Where(x => x.Subject == user && x.IsActive)
+                    .OrderByDescending(x => x.Subscriber.PointsCount)
                     .Select(x => GetProfileModel(x.Subscriber))
                     .ToList();
 
@@ -410,6 +570,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscribers = UserSubscriptionService.GetAll()
                     .Where(x => x.Subject == user && x.IsActive)
+                    .OrderByDescending(x => x.Subscriber.PointsCount)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -437,6 +598,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscribers = UserSubscriptionService.GetAll()
                     .Where(x => x.Subject == user && x.IsActive)
+                    .OrderByDescending(x => x.Subscriber.PointsCount)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -449,6 +611,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscribers = UserSubscriptionService.GetAll()
                     .Where(x => x.Subject == user && x.IsActive)
+                    .OrderByDescending(x => x.Subscriber.PointsCount)
                     .Select(x => GetProfileModel(x.Subscriber))
                     .ToList();
 
@@ -461,6 +624,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscribers = UserSubscriptionService.GetAll()
                     .Where(x => x.Subject == user && x.IsActive)
+                    .OrderByDescending(x => x.Subscriber.PointsCount)
                     .Select(x => new UserViewModel(x.Subscriber))
                     .ToList();
 
@@ -481,6 +645,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscriptions = UserSubscriptionService.GetAll()
                     .Where(x => x.Subscriber == user && x.IsActive)
+                    .OrderByDescending(x => x.Subject.PointsCount)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -493,6 +658,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscriptions = UserSubscriptionService.GetAll()
                     .Where(x => x.Subscriber == user && x.IsActive)
+                    .OrderByDescending(x => x.Subject.PointsCount)
                     .Select(x => GetProfileModel(x.Subject))
                     .ToList();
 
@@ -505,6 +671,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscriptions = UserSubscriptionService.GetAll()
                     .Where(x => x.Subscriber == user && x.IsActive)
+                    .OrderByDescending(x => x.Subject.PointsCount)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -532,6 +699,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscriptions = UserSubscriptionService.GetAll()
                     .Where(x => x.Subscriber == user && x.IsActive)
+                    .OrderByDescending(x => x.Subject.PointsCount)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -544,6 +712,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscriptions = UserSubscriptionService.GetAll()
                     .Where(x => x.Subscriber == user && x.IsActive)
+                    .OrderByDescending(x => x.Subject.PointsCount)
                     .Select(x => GetProfileModel(x.Subject))
                     .ToList();
 
@@ -556,6 +725,7 @@ namespace SyndicateAPI.Controllers
             {
                 var subscriptions = UserSubscriptionService.GetAll()
                     .Where(x => x.Subscriber == user && x.IsActive)
+                    .OrderByDescending(x => x.Subject.PointsCount)
                     .Select(x => new UserViewModel(x.Subject))
                     .ToList();
 
@@ -605,6 +775,13 @@ namespace SyndicateAPI.Controllers
                     .Select(x => new GroupPostViewModel(x))
                     .ToList();
 
+                posts = posts.Select(x =>
+                {
+                    x.Post = PostToViewModel(x.Post);
+                    return x;
+                })
+                .ToList();
+
                 RoleInGroup role;
                 if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
                     x.Group == groupMember.Group) != null)
@@ -636,16 +813,19 @@ namespace SyndicateAPI.Controllers
 
                 var subscribers = GroupSubscriptionService.GetAll()
                     .Where(x => x.Group == groupMember.Group && x.IsActive)
+                    .OrderByDescending(x => x.User.PointsCount)
                     .Select(x => new UserViewModel(x.User))
                     .ToList();
 
                 var members = GroupMemberService.GetAll()
                     .Where(x => x.Group == groupMember.Group && x.IsActive)
+                    .OrderByDescending(x => x.User.PointsCount)
                     .Select(x => MemberToViewModel(x))
                     .ToList();
 
                 var joinRequests = GroupJoinRequestService.GetAll()
                     .Where(x => x.Group == groupMember.Group && x.Status == GroupJoinRequestStatus.New)
+                    .OrderByDescending(x => x.User.PointsCount)
                     .Select(x => new GroupJoinRequestViewModel(x))
                     .ToList();
 
@@ -658,6 +838,7 @@ namespace SyndicateAPI.Controllers
 
             profile.Subscribers = UserSubscriptionService.GetAll()
                 .Where(x => x.Subject == user && x.IsActive)
+                .OrderByDescending(x => x.Subscriber.PointsCount)
                 .Select(x => new UserViewModel(x.Subscriber))
                 .ToList();
 
@@ -665,6 +846,7 @@ namespace SyndicateAPI.Controllers
 
             profile.Subscriptions = UserSubscriptionService.GetAll()
                 .Where(x => x.Subscriber == user && x.IsActive)
+                .OrderByDescending(x => x.Subject.PointsCount)
                 .Select(x => new UserViewModel(x.Subject))
                 .ToList();
 
