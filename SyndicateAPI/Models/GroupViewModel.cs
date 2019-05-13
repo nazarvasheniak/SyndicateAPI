@@ -58,7 +58,7 @@ namespace SyndicateAPI.Models
             }
 
             Posts = posts
-                .Where(x => x.Post.IsPublished)
+                .Where(x => x.Post != null && x.Post.IsPublished)
                 .ToList();
         }
     }

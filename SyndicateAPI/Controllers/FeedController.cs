@@ -724,7 +724,15 @@ namespace SyndicateAPI.Controllers
                     Message = "Вы не можете удалять посты в данной группировке"
                 });
 
-            PostService.Delete(postID);
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
+
+                GroupPostService.Delete(groupPost);
+            }
+
+            PostService.Delete(post);
 
             var socketMessage = JsonConvert.SerializeObject(new SocketMessage
             {

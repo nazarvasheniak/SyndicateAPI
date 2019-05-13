@@ -26,6 +26,9 @@ namespace SyndicateAPI.Controllers
         private IGroupMemberService GroupMemberService { get; set; }
         private IFileService FileService { get; set; }
         private IPostService PostService { get; set; }
+        private IPostLikeService PostLikeService { get; set; }
+        private IPostCommentService PostCommentService { get; set; }
+        private IPostCommentLikeService PostCommentLikeService { get; set; }
         private IGroupPostService GroupPostService { get; set; }
 
         public GroupsController([FromServices]
@@ -38,6 +41,9 @@ namespace SyndicateAPI.Controllers
             IGroupMemberService groupMemberService,
             IFileService fileService,
             IPostService postService,
+            IPostLikeService postLikeService,
+            IPostCommentService postCommentService,
+            IPostCommentLikeService postCommentLikeService,
             IGroupPostService groupPostService)
         {
             UserService = userService;
@@ -49,6 +55,9 @@ namespace SyndicateAPI.Controllers
             GroupMemberService = groupMemberService;
             FileService = fileService;
             PostService = postService;
+            PostLikeService = postLikeService;
+            PostCommentService = postCommentService;
+            PostCommentLikeService = postCommentLikeService;
             GroupPostService = groupPostService;
         }
 
@@ -241,6 +250,152 @@ namespace SyndicateAPI.Controllers
                 }
 
                 return result;
+            }
+
+            return result;
+        }
+
+        private PostViewModel PostToViewModel(Post post)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == post)
+                .ToList();
+
+            var viewComments = new List<PostCommentViewModel>();
+
+            foreach (var c in comments)
+            {
+                var isLikedComment = false;
+                var commentLikes = PostCommentLikeService.GetAll()
+                    .Where(x => x.Comment == c)
+                    .ToList();
+
+                var myLike = PostCommentLikeService.GetAll()
+                    .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                if (myLike != null)
+                    isLikedComment = true;
+
+                viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+            }
+
+            var result = new PostViewModel(post)
+            {
+                Comments = viewComments,
+                LikesCount = (ulong)likes.Count
+            };
+
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                result.IsLiked = false;
+            else
+                result.IsLiked = true;
+
+            return result;
+        }
+
+        private PostViewModel PostToViewModel(PostViewModel post)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var dbPost = PostService.Get(post.ID);
+            if (dbPost == null)
+                return null;
+
+            var likes = PostLikeService.GetAll()
+                .Where(x => x.Post == dbPost)
+                .ToList();
+
+            var comments = PostCommentService.GetAll()
+                .Where(x => x.Post == dbPost)
+                .ToList();
+
+            var viewComments = new List<PostCommentViewModel>();
+
+            foreach (var c in comments)
+            {
+                var isLikedComment = false;
+                var commentLikes = PostCommentLikeService.GetAll()
+                    .Where(x => x.Comment == c)
+                    .ToList();
+
+                var myLike = PostCommentLikeService.GetAll()
+                    .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                if (myLike != null)
+                    isLikedComment = true;
+
+                viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+            }
+
+            var result = new PostViewModel(dbPost)
+            {
+                Comments = viewComments,
+                LikesCount = (ulong)likes.Count
+            };
+
+            if (likes.FirstOrDefault(x => x.User == user) == null)
+                result.IsLiked = false;
+            else
+                result.IsLiked = true;
+
+            return result;
+        }
+
+        private List<PostViewModel> PostToViewModel(IEnumerable<Post> posts)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var result = new List<PostViewModel>();
+
+            foreach (var post in posts)
+            {
+                var likes = PostLikeService.GetAll()
+                    .Where(x => x.Post == post)
+                    .ToList();
+
+                var comments = PostCommentService.GetAll()
+                    .Where(x => x.Post == post)
+                    .ToList();
+
+                var viewComments = new List<PostCommentViewModel>();
+
+                foreach (var c in comments)
+                {
+                    var isLikedComment = false;
+                    var commentLikes = PostCommentLikeService.GetAll()
+                        .Where(x => x.Comment == c)
+                        .ToList();
+
+                    var myLike = PostCommentLikeService.GetAll()
+                        .FirstOrDefault(x => x.Comment == c && x.User == user);
+
+                    if (myLike != null)
+                        isLikedComment = true;
+
+                    viewComments.Add(new PostCommentViewModel(c, isLikedComment, (ulong)commentLikes.Count));
+                }
+
+                var postItem = new PostViewModel(post)
+                {
+                    Comments = viewComments,
+                    LikesCount = (ulong)likes.Count
+                };
+
+                if (likes.FirstOrDefault(x => x.User == user) == null)
+                    postItem.IsLiked = false;
+                else
+                    postItem.IsLiked = true;
+
+                result.Add(postItem);
             }
 
             return result;
