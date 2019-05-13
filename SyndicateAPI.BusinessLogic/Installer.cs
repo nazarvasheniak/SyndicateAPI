@@ -22,6 +22,7 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<IGroupCreatorService, GroupCreatorService>()
                 .AddScoped<IGroupJoinRequestService, GroupJoinRequestService>()
                 .AddScoped<IRewardService, RewardService>()
+                .AddScoped<IAwardService, AwardService>()
                 .AddScoped<IVehicleService, VehicleService>()
                 .AddScoped<IVehiclePhotoService, VehiclePhotoService>()
                 .AddScoped<IVehicleCategoryService, VehicleCategoryService>()

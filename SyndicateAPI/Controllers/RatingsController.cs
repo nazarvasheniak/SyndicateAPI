@@ -26,6 +26,7 @@ namespace SyndicateAPI.Controllers
         private IGroupJoinRequestService GroupJoinRequestService { get; set; }
         private IVehicleService VehicleService { get; set; }
         private IVehiclePhotoService VehiclePhotoService { get; set; }
+        private IAwardService AwardService { get; set; }
 
         public RatingsController([FromServices]
             IUserService userService,
@@ -37,7 +38,8 @@ namespace SyndicateAPI.Controllers
             IGroupSubscriptionService groupSubscriptionService,
             IGroupJoinRequestService groupJoinRequestService,
             IVehicleService vehicleService,
-            IVehiclePhotoService vehiclePhotoService)
+            IVehiclePhotoService vehiclePhotoService,
+            IAwardService awardService)
         {
             UserService = userService;
             GroupService = groupService;
@@ -49,6 +51,7 @@ namespace SyndicateAPI.Controllers
             GroupJoinRequestService = groupJoinRequestService;
             VehicleService = vehicleService;
             VehiclePhotoService = vehiclePhotoService;
+            AwardService = awardService;
         }
 
         [HttpGet("users")]
@@ -213,6 +216,11 @@ namespace SyndicateAPI.Controllers
                 viewVehicles.Add(new VehicleViewModel(vehicle, photos));
             }
 
+            var awards = AwardService.GetAll()
+                .Where(x => x.Rewarder == user)
+                .Select(x => new AwardViewModel(x))
+                .ToList();
+
             var profile = new ProfileViewModel
             {
                 FirstName = user.Person.FirstName,
@@ -222,7 +230,7 @@ namespace SyndicateAPI.Controllers
                 CityName = user.Person.City.Name,
                 SubscribersCount = 0,
                 Biography = user.Person.Biography,
-                Rewards = new List<RewardViewModel>(),
+                Awards = awards,
                 Vehicles = viewVehicles
             };
 

@@ -24,6 +24,7 @@ namespace SyndicateAPI.Controllers
         private IEmailService EmailService { get; set; }
         private IPersonService PersonService { get; set; }
         private IRewardService RewardService { get; set; }
+        private IAwardService AwardService { get; set; }
         private ICityService CityService { get; set; }
         private IVehicleService VehicleService { get; set; }
         private IVehiclePhotoService VehiclePhotoService { get; set; }
@@ -46,6 +47,7 @@ namespace SyndicateAPI.Controllers
             IEmailService emailService,
             IPersonService personService,
             IRewardService rewardService,
+            IAwardService awardService,
             ICityService cityService,
             IVehicleService vehicleService,
             IVehiclePhotoService vehiclePhotoService,
@@ -67,6 +69,7 @@ namespace SyndicateAPI.Controllers
             EmailService = emailService;
             PersonService = personService;
             RewardService = rewardService;
+            AwardService = awardService;
             CityService = cityService;
             VehicleService = vehicleService;
             VehiclePhotoService = vehiclePhotoService;
@@ -753,6 +756,11 @@ namespace SyndicateAPI.Controllers
                 viewVehicles.Add(new VehicleViewModel(vehicle, photos));
             }
 
+            var awards = AwardService.GetAll()
+                .Where(x => x.Rewarder == user)
+                .Select(x => new AwardViewModel(x))
+                .ToList();
+
             var profile = new ProfileViewModel
             {
                 FirstName = user.Person.FirstName,
@@ -761,7 +769,7 @@ namespace SyndicateAPI.Controllers
                 PointsCount = user.PointsCount,
                 CityName = user.Person.City.Name,
                 Biography = user.Person.Biography,
-                Rewards = new List<RewardViewModel>(),
+                Awards = awards,
                 Vehicles = viewVehicles
             };
 
