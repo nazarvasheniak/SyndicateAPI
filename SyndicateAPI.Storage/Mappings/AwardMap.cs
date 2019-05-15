@@ -10,8 +10,9 @@ namespace SyndicateAPI.Storage.Mappings
             Table("awards");
             Id(u => u.ID, "id");
 
-            References(e => e.Awarder, "id_awarder");
-            References(e => e.Rewarder, "id_rewarder");
+            References(e => e.Awarder, "id_awarder").Not.Nullable();
+            References(e => e.Rewarder, "id_rewarder").Not.Nullable();
+            References(e => e.Reward, "id_reward").Not.Nullable();
 
             Map(u => u.Comment, "comment");
             Map(u => u.Deleted, "deleted").Not.Nullable();

@@ -13,8 +13,9 @@ namespace SyndicateAPI.Models
         public long ID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public PartnerType Type { get; set; }
+        public MapPointType MapPointType { get; set; }
         public FileViewModel Logo { get; set; }
+        public FileViewModel MapIcon { get; set; }
         public CoordinatesViewModel Coordinates { get; set; }
 
         public PartnerViewModel() { }
@@ -26,8 +27,9 @@ namespace SyndicateAPI.Models
                 ID = partner.ID;
                 Name = partner.Name;
                 Description = partner.Description;
-                Type = partner.Type;
+                MapPointType = partner.MapPointType;
                 Logo = new FileViewModel(partner.Logo);
+                MapIcon = new FileViewModel(partner.MapIcon);
                 Coordinates = new CoordinatesViewModel(partner.Latitude, partner.Longitude);
             }
         }

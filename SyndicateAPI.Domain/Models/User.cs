@@ -1,4 +1,5 @@
-﻿using SyndicateAPI.Domain.Interfaces;
+﻿using SyndicateAPI.Domain.Enums;
+using SyndicateAPI.Domain.Interfaces;
 using System;
 
 namespace SyndicateAPI.Domain.Models
@@ -18,6 +19,7 @@ namespace SyndicateAPI.Domain.Models
         public virtual bool IsOnline { get; set; }
         public virtual double Latitude { get; set; }
         public virtual double Longitude { get; set; }
+        public virtual MapPointType MapPointType { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

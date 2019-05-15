@@ -6,8 +6,8 @@ namespace SyndicateAPI.Models
     {
         public long ID { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
         public FileViewModel Icon { get; set; }
+        public UserViewModel User { get; set; }
 
         public RewardViewModel() { }
 
@@ -17,8 +17,8 @@ namespace SyndicateAPI.Models
             {
                 ID = reward.ID;
                 Name = reward.Name;
-                Description = reward.Description;
                 Icon = new FileViewModel(reward.Icon);
+                User = new UserViewModel(reward.User);
             }
         }
     }

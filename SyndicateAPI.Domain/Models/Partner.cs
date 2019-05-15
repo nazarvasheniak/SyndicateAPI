@@ -10,10 +10,11 @@ namespace SyndicateAPI.Domain.Models
     {
         public virtual string Name { get; set; }
         public virtual string Description { get; set; }
-        public virtual PartnerType Type { get; set; }
         public virtual File Logo { get; set; }
+        public virtual File MapIcon { get; set; }
         public virtual double Latitude { get; set; }
         public virtual double Longitude { get; set; }
+        public virtual MapPointType MapPointType { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

@@ -7,9 +7,9 @@ using System.Text;
 
 namespace SyndicateAPI.BusinessLogic.Services
 {
-    public class OffroadTrackService : BaseCrudService<OffroadTrack>, IOffroadTrackService
+    public class MapPointService : BaseCrudService<MapPoint>, IMapPointService
     {
-        public OffroadTrackService(IRepository<OffroadTrack> repository) : base(repository)
+        public MapPointService(IRepository<MapPoint> repository) : base(repository)
         {
         }
     }

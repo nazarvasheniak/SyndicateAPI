@@ -1,4 +1,5 @@
-﻿using SyndicateAPI.Domain.Models;
+﻿using SyndicateAPI.Domain.Enums;
+using SyndicateAPI.Domain.Models;
 using System;
 
 namespace SyndicateAPI.Models
@@ -12,6 +13,7 @@ namespace SyndicateAPI.Models
         public FileViewModel Avatar { get; set; }
         public PersonViewModel Person { get; set; }
         public CoordinatesViewModel Coordinates { get; set; }
+        public MapPointType MapPointType { get; set; }
         public bool IsOnline { get; set; }
 
         public UserViewModel() { }
@@ -27,6 +29,7 @@ namespace SyndicateAPI.Models
                 Avatar = new FileViewModel(user.Avatar);
                 Person = new PersonViewModel(user.Person);
                 Coordinates = new CoordinatesViewModel(user.Latitude, user.Longitude);
+                MapPointType = user.MapPointType;
                 IsOnline = user.IsOnline;
             }
         }

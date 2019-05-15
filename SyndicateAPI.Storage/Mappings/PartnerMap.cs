@@ -15,10 +15,11 @@ namespace SyndicateAPI.Storage.Mappings
             Id(u => u.ID, "id");
 
             References(e => e.Logo, "id_logo");
+            References(e => e.MapIcon, "id_icon");
 
             Map(u => u.Name, "name");
             Map(u => u.Description, "description");
-            Map(u => u.Type, "type").CustomType<PartnerType>();
+            Map(u => u.MapPointType, "type").CustomType<MapPointType>();
             Map(u => u.Latitude, "latitude");
             Map(u => u.Longitude, "longitude");
             Map(u => u.Deleted, "deleted").Not.Nullable();

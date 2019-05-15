@@ -1,4 +1,5 @@
 ﻿using FluentNHibernate.Mapping;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -6,17 +7,18 @@ using System.Text;
 
 namespace SyndicateAPI.Storage.Mappings
 {
-    public class OffroadTrackMap : ClassMap<OffroadTrack>
+    public class MapPointMap : ClassMap<MapPoint>
     {
-        public OffroadTrackMap()
+        public MapPointMap()
         {
-            Table("offroad_tracks");
-            Id(u => u.ID, "id");
+            Table("map_points");
+            Id(x => x.ID, "id");
 
             Map(u => u.Name, "name");
-            Map(u => u.Description, "decription");
+            Map(u => u.Message, "message");
             Map(u => u.Latitude, "latitude");
             Map(u => u.Longitude, "longitude");
+            Map(u => u.MapPointType, "map_point_type").CustomType<MapPointType>();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

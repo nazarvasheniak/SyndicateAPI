@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SyndicateAPI.BusinessLogic.Interfaces
 {
-    public interface IOffroadTrackService : IBaseCrudService<OffroadTrack>
+    public interface IMapPointService : IBaseCrudService<MapPoint>
     {
     }
 }

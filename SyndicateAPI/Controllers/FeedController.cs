@@ -669,11 +669,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -734,11 +734,11 @@ namespace SyndicateAPI.Controllers
 
             PostService.Delete(post);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.DeleteUserPost,
-                Message = postID
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.DeleteUserPost,
+            //    Message = postID
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -802,11 +802,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, true, (ulong)likesCount);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -865,11 +865,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, false, (ulong)likesCount);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -938,11 +938,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -1021,11 +1021,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -1107,11 +1107,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 
@@ -1185,11 +1185,11 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount);
 
-            var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            {
-                Type = SocketMessageType.UpdateUserPost,
-                Message = result
-            });
+            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
+            //{
+            //    Type = SocketMessageType.UpdateUserPost,
+            //    Message = result
+            //});
 
             //await NotificationService.SendMessageToAllAsync(socketMessage);
 

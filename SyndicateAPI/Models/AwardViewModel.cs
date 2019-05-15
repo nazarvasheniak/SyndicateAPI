@@ -11,6 +11,7 @@ namespace SyndicateAPI.Models
         public long ID { get; set; }
         public UserViewModel Awarder { get; set; }
         public UserViewModel Rewarder { get; set; }
+        public RewardViewModel Reward { get; set; }
         public string Comment { get; set; }
 
         public AwardViewModel() { }
@@ -22,6 +23,7 @@ namespace SyndicateAPI.Models
                 ID = award.ID;
                 Awarder = new UserViewModel(award.Awarder);
                 Rewarder = new UserViewModel(award.Rewarder);
+                Reward = new RewardViewModel(award.Reward);
                 Comment = award.Comment;
             }
         }

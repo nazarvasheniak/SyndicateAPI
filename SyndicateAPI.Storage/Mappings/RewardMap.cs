@@ -12,9 +12,9 @@ namespace SyndicateAPI.Storage.Mappings
             Id(u => u.ID, "id");
 
             References(e => e.Icon, "id_icon");
+            References(e => e.User, "id_user");
 
             Map(u => u.Name, "name");
-            Map(u => u.Description, "description");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

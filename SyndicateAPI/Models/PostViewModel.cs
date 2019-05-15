@@ -20,6 +20,7 @@ namespace SyndicateAPI.Models
         public ulong LikesCount { get; set; }
         public List<PostCommentViewModel> Comments { get; set; }
         public CoordinatesViewModel Coordinates { get; set; }
+        public MapPointType MapPointType { get; set; }
 
         public PostViewModel() { }
 
