@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SyndicateAPI.WebSocketManager.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +9,14 @@ using System.Threading.Tasks;
 
 namespace SyndicateAPI.WebSocketManager
 {
-    public class NotificationsMessageHandler : WebSocketHandler
+    public class NotificationsMessageHandler : WebSocketHandler, INotificationService
     {
         public List<SocketUser> socketUsers = new List<SocketUser>();
+
+        public List<SocketUser> SocketUsers
+        {
+            get => socketUsers;
+        }
 
         public NotificationsMessageHandler(WebSocketConnectionManager webSocketConnectionManager) : base(webSocketConnectionManager)
         {
@@ -35,12 +41,13 @@ namespace SyndicateAPI.WebSocketManager
         {
             var socketId = WebSocketConnectionManager.GetId(socket);
             var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            var jsonMessage = JsonConvert.DeserializeObject<SocketMessage>(message);
 
             try
             {
                 var existSocketUser = socketUsers.FirstOrDefault(x => x.ID.Equals(socketId));
                 if (existSocketUser == null)
-                    socketUsers.Add(new SocketUser { ID = socketId });
+                    socketUsers.Add(new SocketUser { ID = socketId, UserID = jsonMessage.UserID });
             }
             catch (Exception ex)
             {

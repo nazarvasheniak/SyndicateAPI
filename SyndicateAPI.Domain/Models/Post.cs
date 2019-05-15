@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SyndicateAPI.Domain.Models
 {
-    public class Post : PersistentObject, IDeletableObject
+    public class Post : PersistentObject, IDeletableObject, IMapPointObject
     {
         public virtual string Text { get; set; }
         public virtual DateTime PublishTime { get; set; }

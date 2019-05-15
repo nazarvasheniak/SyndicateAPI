@@ -11,6 +11,7 @@ using SyndicateAPI.BusinessLogic;
 using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Storage;
 using SyndicateAPI.WebSocketManager;
+using SyndicateAPI.WebSocketManager.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +53,7 @@ namespace SyndicateAPI
                     };
                 });
 
+            services.AddScoped<NotificationsMessageHandler>();
             services.AddScoped<PublishManager>();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
@@ -64,7 +66,7 @@ namespace SyndicateAPI
                 });
             });
 
-            //services.AddWebSocketManager();
+            services.AddWebSocketManager();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -99,8 +101,8 @@ namespace SyndicateAPI
             app.UseMvc();
             app.UseWebSockets();
 
-            //var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
-            //app.MapWebSocketManager("/notifications", notifMessageHandler);
+            var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
+            app.MapWebSocketManager("/notifications", notifMessageHandler);
 
             var publishManager = serviceProvider.GetService<PublishManager>();
             publishManager.SetServices(serviceProvider.GetService<IPostService>());

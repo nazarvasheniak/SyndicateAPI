@@ -32,6 +32,19 @@ namespace SyndicateAPI.Controllers
             AwardService = awardService;
         }
 
+        [HttpGet("rewards")]
+        public async Task<IActionResult> GetAllRewards()
+        {
+            var rewards = RewardService.GetAll()
+                .Select(x => new RewardViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<RewardViewModel>>
+            {
+                Data = rewards
+            });
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateAward([FromBody] CreateAwardRequest request)
         {

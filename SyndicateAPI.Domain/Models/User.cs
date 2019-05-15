@@ -3,7 +3,7 @@ using System;
 
 namespace SyndicateAPI.Domain.Models
 {
-    public class User : PersistentObject, IDeletableObject
+    public class User : PersistentObject, IDeletableObject, IMapPointObject
     {
         public virtual string Login { get; set; }
         public virtual string Password { get; set; }
@@ -16,6 +16,8 @@ namespace SyndicateAPI.Domain.Models
         public virtual DateTime ActivationTime { get; set; }
         public virtual bool IsActive { get; set; }
         public virtual bool IsOnline { get; set; }
+        public virtual double Latitude { get; set; }
+        public virtual double Longitude { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

@@ -37,7 +37,12 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<IPostCommentLikeService, PostCommentLikeService>()
                 .AddScoped<IGroupPostService, GroupPostService>()
                 .AddScoped<IUserSubscriptionService, UserSubscriptionService>()
-                .AddScoped<IPointsRewardService, PointsRewardService>();
+                .AddScoped<IPointsRewardService, PointsRewardService>()
+                .AddScoped<IPartnerService, PartnerService>()
+                .AddScoped<IMissionService, MissionService>()
+                .AddScoped<IDriftPlaygroundService, DriftPlaygroundService>()
+                .AddScoped<IGatheringService, GatheringService>()
+                .AddScoped<IOffroadTrackService, OffroadTrackService>();
         }
     }
 }

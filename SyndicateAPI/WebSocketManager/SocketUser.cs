@@ -8,5 +8,6 @@ namespace SyndicateAPI.WebSocketManager
     public class SocketUser
     {
         public string ID { get; set; }
+        public long UserID { get; set; }
     }
 }

@@ -8,10 +8,7 @@ namespace SyndicateAPI.WebSocketManager
 {
     public class SocketMessage
     {
-        [JsonProperty("type")]
-        public SocketMessageType Type { get; set; }
-
-        [JsonProperty("message")]
-        public object Message { get; set; }
+        [JsonProperty("userID")]
+        public long UserID { get; set; }
     }
 }
