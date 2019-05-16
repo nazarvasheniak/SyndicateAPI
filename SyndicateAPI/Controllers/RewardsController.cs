@@ -214,6 +214,7 @@ namespace SyndicateAPI.Controllers
             {
                 Awarder = user,
                 Rewarder = rewarder,
+                Reward = reward,
                 Comment = request.Comment
             };
 

@@ -18,5 +18,6 @@ namespace SyndicateAPI.Models.Request
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public MapPointType MapPointType { get; set; }
+        public List<CreatePartnerProductRequest> Products { get; set; }
     }
 }

@@ -697,35 +697,35 @@ namespace SyndicateAPI.Controllers
                     Message = "Post ID error"
                 });
 
-            var userGroupMember = GroupMemberService.GetAll()
-                .FirstOrDefault(x => x.User == user && x.IsActive);
-
-            if (userGroupMember == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Вы не состоите в группировке"
-                });
-
-            var userGroupModerator = GroupModeratorService.GetAll()
-                .FirstOrDefault(x => x.User == user && x.Group == userGroupMember.Group && x.IsActive);
-
-            if (user != userGroupMember.Group.Owner && userGroupModerator == null)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Вы не можете удалять посты в данной группировке"
-                });
-
-            if (userGroupModerator != null && userGroupModerator.Level == GroupModeratorLevel.Level1)
-                return BadRequest(new ResponseModel
-                {
-                    Success = false,
-                    Message = "Вы не можете удалять посты в данной группировке"
-                });
-
             if (post.Type == PostType.Group)
             {
+                var userGroupMember = GroupMemberService.GetAll()
+                    .FirstOrDefault(x => x.User == user && x.IsActive);
+
+                if (userGroupMember == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Вы не состоите в группировке"
+                    });
+
+                var userGroupModerator = GroupModeratorService.GetAll()
+                    .FirstOrDefault(x => x.User == user && x.Group == userGroupMember.Group && x.IsActive);
+
+                if (user != userGroupMember.Group.Owner && userGroupModerator == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Вы не можете удалять посты в данной группировке"
+                    });
+
+                if (userGroupModerator != null && userGroupModerator.Level == GroupModeratorLevel.Level1)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Вы не можете удалять посты в данной группировке"
+                    });
+
                 var groupPost = GroupPostService.GetAll()
                     .FirstOrDefault(x => x.Post == post);
 

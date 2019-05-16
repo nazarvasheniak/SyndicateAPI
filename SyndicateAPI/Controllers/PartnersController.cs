@@ -20,15 +20,18 @@ namespace SyndicateAPI.Controllers
     {
         private IUserService UserService { get; set; }
         private IPartnerService PartnerService { get; set; }
+        private IPartnerProductService PartnerProductService { get; set; }
         private IFileService FileService { get; set; }
 
         public PartnersController([FromServices]
             IUserService userService,
             IPartnerService partnerService,
+            IPartnerProductService partnerProductService,
             IFileService fileService)
         {
             UserService = userService;
             PartnerService = partnerService;
+            PartnerProductService = partnerProductService;
             FileService = fileService;
         }
 
@@ -122,6 +125,15 @@ namespace SyndicateAPI.Controllers
             };
 
             PartnerService.Create(partner);
+
+            foreach (var product in request.Products)
+                PartnerProductService.Create(new PartnerProduct
+                {
+                    Name = product.Name,
+                    Price = product.Price,
+                    PointsCount = product.PointsCount,
+                    Partner = partner
+                });
 
             return Ok(new DataResponse<PartnerViewModel>
             {
