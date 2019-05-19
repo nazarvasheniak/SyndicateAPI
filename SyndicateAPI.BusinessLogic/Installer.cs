@@ -40,7 +40,9 @@ namespace SyndicateAPI.BusinessLogic
                 .AddScoped<IPointsRewardService, PointsRewardService>()
                 .AddScoped<IPartnerService, PartnerService>()
                 .AddScoped<IPartnerProductService, PartnerProductService>()
-                .AddScoped<IMapPointService, MapPointService>();
+                .AddScoped<IMapPointService, MapPointService>()
+                .AddScoped<IDialogService, DialogService>()
+                .AddScoped<IDialogMessageService, DialogMessageService>();
         }
     }
 }
