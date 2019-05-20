@@ -12,7 +12,7 @@ using SyndicateAPI.Models.Response;
 
 namespace SyndicateAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/dialogs")]
     [ApiController]
     [Authorize]
     public class DialogsController : Controller
@@ -31,6 +31,33 @@ namespace SyndicateAPI.Controllers
             DialogMessageService = dialogMessageService;
         }
 
+        private DialogViewModel GetDialogWithMessages(Dialog dialog)
+        {
+            var messages = DialogMessageService.GetAll()
+                .Where(x => x.Dialog == dialog)
+                .ToList();
+
+            var result = new DialogViewModel(dialog, messages);
+
+            return result;
+        }
+
+        private List<DialogViewModel> GetDialogWithMessages(IEnumerable<Dialog> dialogs)
+        {
+            var result = new List<DialogViewModel>();
+            
+            foreach (var dialog in dialogs)
+            {
+                var messages = DialogMessageService.GetAll()
+                    .Where(x => x.Dialog == dialog)
+                    .ToList();
+
+                result.Add(new DialogViewModel(dialog, messages));
+            }
+
+            return result;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetMyDialogs()
         {
@@ -41,9 +68,7 @@ namespace SyndicateAPI.Controllers
                 .Where(x =>
                     x.Participant1 == user ||
                     x.Participant2 == user)
-                .Select(x => 
-                    new DialogViewModel(x, 
-                        DialogMessageService.GetAll().Where(y => y.Dialog == x)))
+                .Select(x => GetDialogWithMessages(x))
                 .ToList();
 
             return Ok(new DataResponse<List<DialogViewModel>>
