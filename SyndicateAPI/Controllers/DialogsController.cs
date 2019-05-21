@@ -31,29 +31,13 @@ namespace SyndicateAPI.Controllers
             DialogMessageService = dialogMessageService;
         }
 
-        private DialogViewModel GetDialogWithMessages(Dialog dialog)
+        private DialogViewModel DialogToViewModel(Dialog dialog)
         {
-            var messages = DialogMessageService.GetAll()
-                .Where(x => x.Dialog == dialog)
-                .ToList();
+            var lastMessage = DialogMessageService.GetAll()
+                .AsEnumerable()
+                .LastOrDefault(x => x.Dialog == dialog);
 
-            var result = new DialogViewModel(dialog, messages);
-
-            return result;
-        }
-
-        private List<DialogViewModel> GetDialogWithMessages(IEnumerable<Dialog> dialogs)
-        {
-            var result = new List<DialogViewModel>();
-            
-            foreach (var dialog in dialogs)
-            {
-                var messages = DialogMessageService.GetAll()
-                    .Where(x => x.Dialog == dialog)
-                    .ToList();
-
-                result.Add(new DialogViewModel(dialog, messages));
-            }
+            var result = new DialogViewModel(dialog, lastMessage);
 
             return result;
         }
@@ -68,7 +52,8 @@ namespace SyndicateAPI.Controllers
                 .Where(x =>
                     x.Participant1 == user ||
                     x.Participant2 == user)
-                .Select(x => GetDialogWithMessages(x))
+                .OrderByDescending(x => x.StartDate)
+                .Select(x => DialogToViewModel(x))
                 .ToList();
 
             return Ok(new DataResponse<List<DialogViewModel>>
@@ -95,14 +80,26 @@ namespace SyndicateAPI.Controllers
 
             var messages = DialogMessageService.GetAll()
                 .Where(x => x.Dialog == dialog)
+                .ToList();
+
+            foreach (var message in messages)
+                if (!message.IsReaded)
+                {
+                    message.IsReaded = true;
+                    DialogMessageService.Update(message);
+                }
+
+            var result = messages
+                .OrderByDescending(x => x.Time)
                 .Select(x => new DialogMessageViewModel(x))
                 .Skip((request.PageNumber - 1) * request.PageCount)
                 .Take(request.PageCount)
                 .ToList();
 
-            return Ok(new DataResponse<List<DialogMessageViewModel>>
+            return Ok(new ListResponse<DialogMessageViewModel>
             {
-                Data = messages
+                Data = result,
+                Pagination = new Pagination(messages.Count, request.PageNumber, request.PageCount)
             });
         }
 
@@ -136,14 +133,26 @@ namespace SyndicateAPI.Controllers
 
             var messages = DialogMessageService.GetAll()
                 .Where(x => x.Dialog == dialog)
+                .ToList();
+
+            foreach (var message in messages)
+                if (!message.IsReaded)
+                {
+                    message.IsReaded = true;
+                    DialogMessageService.Update(message);
+                }
+
+            var result = messages
+                .OrderByDescending(x => x.Time)
                 .Select(x => new DialogMessageViewModel(x))
                 .Skip((request.PageNumber - 1) * request.PageCount)
                 .Take(request.PageCount)
                 .ToList();
 
-            return Ok(new DataResponse<List<DialogMessageViewModel>>
+            return Ok(new ListResponse<DialogMessageViewModel>
             {
-                Data = messages
+                Data = result,
+                Pagination = new Pagination(messages.Count, request.PageNumber, request.PageCount)
             });
         }
 

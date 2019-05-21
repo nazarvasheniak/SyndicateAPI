@@ -1,8 +1,5 @@
 ﻿using SyndicateAPI.Domain.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SyndicateAPI.Models
 {
@@ -12,12 +9,11 @@ namespace SyndicateAPI.Models
         public UserViewModel Participant1 { get; set; }
         public UserViewModel Participant2 { get; set; }
         public DateTime StartDate { get; set; }
-        public bool IsUnread { get; set; }
-        public List<DialogMessageViewModel> Messages { get; set; } 
+        public DialogMessageViewModel LastMessage { get; set; } 
 
         public DialogViewModel() { }
 
-        public DialogViewModel(Dialog dialog, IEnumerable<DialogMessage> messages)
+        public DialogViewModel(Dialog dialog, DialogMessage lastMessage)
         {
             if (dialog != null)
             {
@@ -25,26 +21,11 @@ namespace SyndicateAPI.Models
                 Participant1 = new UserViewModel(dialog.Participant1);
                 Participant2 = new UserViewModel(dialog.Participant2);
                 StartDate = dialog.StartDate;
-                Messages = messages
-                    .Select(x => new DialogMessageViewModel(x))
-                    .OrderByDescending(x => x.Time)
-                    .ToList();
-
-                if (Messages.Count == 0)
-                {
-                    IsUnread = false;
-                }
-                else
-                {
-                    if (!Messages.FirstOrDefault().IsReaded)
-                        IsUnread = true;
-                    else
-                        IsUnread = false;
-                }
+                LastMessage = new DialogMessageViewModel(lastMessage);
             }
         }
 
-        public DialogViewModel(Dialog dialog, IEnumerable<DialogMessageViewModel> messages)
+        public DialogViewModel(Dialog dialog, DialogMessageViewModel lastMessage)
         {
             if (dialog != null)
             {
@@ -52,25 +33,11 @@ namespace SyndicateAPI.Models
                 Participant1 = new UserViewModel(dialog.Participant1);
                 Participant2 = new UserViewModel(dialog.Participant2);
                 StartDate = dialog.StartDate;
-                Messages = messages
-                    .OrderByDescending(x => x.Time)
-                    .ToList();
-
-                if (Messages.Count == 0)
-                {
-                    IsUnread = false;
-                }
-                else
-                {
-                    if (!Messages.FirstOrDefault().IsReaded)
-                        IsUnread = true;
-                    else
-                        IsUnread = false;
-                }
+                LastMessage = lastMessage;
             }
         }
 
-        public DialogViewModel(DialogViewModel dialog, IEnumerable<DialogMessageViewModel> messages)
+        public DialogViewModel(DialogViewModel dialog, DialogMessageViewModel lastMessage)
         {
             if (dialog != null)
             {
@@ -78,25 +45,11 @@ namespace SyndicateAPI.Models
                 Participant1 = dialog.Participant1;
                 Participant2 = dialog.Participant2;
                 StartDate = dialog.StartDate;
-                Messages = messages
-                    .OrderByDescending(x => x.Time)
-                    .ToList();
-
-                if (Messages.Count == 0)
-                {
-                    IsUnread = false;
-                }
-                else
-                {
-                    if (!Messages.FirstOrDefault().IsReaded)
-                        IsUnread = true;
-                    else
-                        IsUnread = false;
-                }
+                LastMessage = lastMessage;
             }
         }
 
-        public DialogViewModel(DialogViewModel dialog, IEnumerable<DialogMessage> messages)
+        public DialogViewModel(DialogViewModel dialog, DialogMessage lastMessage)
         {
             if (dialog != null)
             {
@@ -104,22 +57,7 @@ namespace SyndicateAPI.Models
                 Participant1 = dialog.Participant1;
                 Participant2 = dialog.Participant2;
                 StartDate = dialog.StartDate;
-                Messages = messages
-                    .Select(x => new DialogMessageViewModel(x))
-                    .OrderByDescending(x => x.Time)
-                    .ToList();
-
-                if (Messages.Count == 0)
-                {
-                    IsUnread = false;
-                }
-                else
-                {
-                    if (!Messages.FirstOrDefault().IsReaded)
-                        IsUnread = true;
-                    else
-                        IsUnread = false;
-                }
+                LastMessage = new DialogMessageViewModel(lastMessage);
             }
         }
     }
