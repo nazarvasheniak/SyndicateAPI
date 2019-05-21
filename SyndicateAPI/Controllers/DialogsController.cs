@@ -77,6 +77,76 @@ namespace SyndicateAPI.Controllers
             });
         }
 
+        [HttpGet("{dialogID}/messages")]
+        public async Task<IActionResult> GetMessagesByDialogId([FromQuery] GetListRequest request, long dialogID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var dialog = DialogService.Get(dialogID);
+            if (dialog == null)
+                return Ok(new DataResponse<List<DialogMessageViewModel>>
+                {
+                    Data = new List<DialogMessageViewModel>()
+                });
+
+            if (dialog.Participant1 != user && dialog.Participant2 != user)
+                return Forbid();
+
+            var messages = DialogMessageService.GetAll()
+                .Where(x => x.Dialog == dialog)
+                .Select(x => new DialogMessageViewModel(x))
+                .Skip((request.PageNumber - 1) * request.PageCount)
+                .Take(request.PageCount)
+                .ToList();
+
+            return Ok(new DataResponse<List<DialogMessageViewModel>>
+            {
+                Data = messages
+            });
+        }
+
+        [HttpGet("participants/{participantID}/messages")]
+        public async Task<IActionResult> GetMessagesByParticipantId([FromQuery] GetListRequest request, long participantID)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var participant = UserService.Get(participantID);
+            if (participant == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            var dialog = DialogService.GetAll()
+                .FirstOrDefault(x =>
+                    x.Participant1 == participant ||
+                    x.Participant2 == participant);
+
+            if (dialog == null)
+                return Ok(new DataResponse<List<DialogMessageViewModel>>
+                {
+                    Data = new List<DialogMessageViewModel>()
+                });
+
+            if (dialog.Participant1 != user && dialog.Participant2 != user)
+                return Forbid();
+
+            var messages = DialogMessageService.GetAll()
+                .Where(x => x.Dialog == dialog)
+                .Select(x => new DialogMessageViewModel(x))
+                .Skip((request.PageNumber - 1) * request.PageCount)
+                .Take(request.PageCount)
+                .ToList();
+
+            return Ok(new DataResponse<List<DialogMessageViewModel>>
+            {
+                Data = messages
+            });
+        }
+
         [HttpPost]
         public async Task<IActionResult> SendMessage([FromBody] SendDialogMessageRequest request)
         {

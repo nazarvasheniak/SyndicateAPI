@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
 using SyndicateAPI.Models;
@@ -214,6 +215,53 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             {
                 Token = authToken,
                 User = new AdminUserViewModel(user)
+            });
+        }
+
+        [HttpPost("online/{isOnline}")]
+        [Authorize]
+        public async Task<IActionResult> SetOnlineStatus(bool isOnline)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            user.IsOnline = isOnline;
+            UserService.Update(user);
+
+            return Ok(new DataResponse<UserViewModel>
+            {
+                Data = new UserViewModel(user)
+            });
+        }
+
+        [HttpGet("online")]
+        [Authorize]
+        public async Task<IActionResult> GetOnlineStatus()
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            return Ok(new DataResponse<bool>
+            {
+                Data = user.IsOnline
+            });
+        }
+
+        [HttpGet("{id}/online")]
+        [Authorize]
+        public async Task<IActionResult> GetOnlineStatus(long id)
+        {
+            var user = UserService.Get(id);
+            if (user == null)
+                return Ok(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            return Ok(new DataResponse<bool>
+            {
+                Data = user.IsOnline
             });
         }
 
