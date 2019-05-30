@@ -231,7 +231,8 @@ namespace SyndicateAPI.Controllers
                 SubscribersCount = 0,
                 Biography = user.Person.Biography,
                 Awards = awards,
-                Vehicles = viewVehicles
+                Vehicles = viewVehicles,
+                IsOnline = user.IsOnline
             };
 
             var groupMember = GroupMemberService.GetAll()

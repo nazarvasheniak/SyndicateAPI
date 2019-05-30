@@ -17,6 +17,8 @@ namespace SyndicateAPI.Models
         public FileViewModel Logo { get; set; }
         public FileViewModel MapIcon { get; set; }
         public CoordinatesViewModel Coordinates { get; set; }
+        public UserViewModel Creator { get; set; }
+        public List<PartnerProductViewModel> Products { get; set; }
 
         public PartnerViewModel() { }
 
@@ -31,6 +33,24 @@ namespace SyndicateAPI.Models
                 Logo = new FileViewModel(partner.Logo);
                 MapIcon = new FileViewModel(partner.MapIcon);
                 Coordinates = new CoordinatesViewModel(partner.Latitude, partner.Longitude);
+                Creator = new UserViewModel(partner.Creator);
+                Products = new List<PartnerProductViewModel>();
+            }
+        }
+
+        public PartnerViewModel(Partner partner, IEnumerable<PartnerProduct> products)
+        {
+            if (partner != null)
+            {
+                ID = partner.ID;
+                Name = partner.Name;
+                Description = partner.Description;
+                MapPointType = partner.MapPointType;
+                Logo = new FileViewModel(partner.Logo);
+                MapIcon = new FileViewModel(partner.MapIcon);
+                Coordinates = new CoordinatesViewModel(partner.Latitude, partner.Longitude);
+                Creator = new UserViewModel(partner.Creator);
+                Products = products.Select(x => new PartnerProductViewModel(x)).ToList();
             }
         }
     }

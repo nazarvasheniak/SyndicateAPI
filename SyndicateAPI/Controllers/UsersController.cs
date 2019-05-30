@@ -259,9 +259,11 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Message = "User not found"
                 });
 
-            return Ok(new DataResponse<bool>
+            return Ok(new GetOnlineStatusResponse
             {
-                Data = user.IsOnline
+                IsOnline = user.IsOnline,
+                Latitude = user.Latitude,
+                Longitude = user.Longitude
             });
         }
 

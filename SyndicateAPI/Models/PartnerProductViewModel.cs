@@ -12,7 +12,6 @@ namespace SyndicateAPI.Models
         public string Name { get; set; }
         public double Price { get; set; }
         public long PointsCount { get; set; }
-        public PartnerViewModel Partner { get; set; }
 
         public PartnerProductViewModel() { }
 
@@ -24,7 +23,6 @@ namespace SyndicateAPI.Models
                 Name = product.Name;
                 Price = product.Price;
                 PointsCount = product.PointsCount;
-                Partner = new PartnerViewModel(product.Partner);
             }
         }
     }

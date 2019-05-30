@@ -19,5 +19,6 @@ namespace SyndicateAPI.Models
         public List<VehicleViewModel> Vehicles { get; set; }
         public List<UserViewModel> Subscribers { get; set; }
         public List<UserViewModel> Subscriptions { get; set; }
+        public bool IsOnline { get; set; }
     }
 }

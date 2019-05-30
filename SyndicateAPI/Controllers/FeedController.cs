@@ -10,6 +10,7 @@ using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
+using SyndicateAPI.WebSocketManager;
 
 namespace SyndicateAPI.Controllers
 {
@@ -32,6 +33,7 @@ namespace SyndicateAPI.Controllers
         private IGroupJoinRequestService GroupJoinRequestService { get; set; }
         private IRatingLevelService RatingLevelService { get; set; }
         private IUserSubscriptionService UserSubscriptionService { get; set; }
+        private NotificationsMessageHandler Notifications { get; set; }
 
         public FeedController([FromBody]
             IUserService userService,
@@ -47,7 +49,8 @@ namespace SyndicateAPI.Controllers
             IGroupSubscriptionService groupSubscriptionService,
             IGroupJoinRequestService groupJoinRequestService,
             IRatingLevelService ratingLevelService,
-            IUserSubscriptionService userSubscriptionService)
+            IUserSubscriptionService userSubscriptionService,
+            NotificationsMessageHandler notifications)
         {
             UserService = userService;
             FileService = fileService;
@@ -63,6 +66,7 @@ namespace SyndicateAPI.Controllers
             GroupJoinRequestService = groupJoinRequestService;
             RatingLevelService = ratingLevelService;
             UserSubscriptionService = userSubscriptionService;
+            Notifications = notifications;
         }
 
         private PostViewModel PostToViewModel(Post post)
@@ -456,13 +460,15 @@ namespace SyndicateAPI.Controllers
 
             PostService.Create(post);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.CreateUserPost,
-            //    Message = post
-            //});
+            var subscribers = UserSubscriptionService.GetAll()
+                .Where(x => x.Subject == user && x.IsActive)
+                .Select(x => x.Subscriber)
+                .ToList();
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+            foreach (var subscriber in subscribers)
+                await Notifications
+                    .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, 
+                    new { postID = post.ID });
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -551,13 +557,25 @@ namespace SyndicateAPI.Controllers
 
             GroupPostService.Create(groupPost);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.CreatePost,
-            //    Message = groupPost
-            //});
+            var groupMembers = GroupMemberService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .Select(x => new UserViewModel(x.User))
+                .ToList();
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+            var groupSubscribers = GroupSubscriptionService.GetAll()
+                .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                .Select(x => new UserViewModel(x.User))
+                .ToList();
+
+            foreach (var member in groupMembers)
+                await Notifications
+                    .SendUpdateToUser(member.ID,SocketMessageType.GroupPostUpdate,
+                    new { groupPostID = groupPost.ID });
+
+            foreach (var subscriber in groupSubscribers)
+                await Notifications
+                    .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate,
+                    new { groupPostID = groupPost.ID });
 
             return Ok(new DataResponse<GroupPostViewModel>
             {
@@ -667,13 +685,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -728,17 +783,41 @@ namespace SyndicateAPI.Controllers
                     .FirstOrDefault(x => x.Post == post);
 
                 GroupPostService.Delete(groupPost);
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == userGroupMember.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, 
+                        new { groupPostID = groupPost.ID});
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate,
+                        new { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate,
+                        new { postID = post.ID });
             }
 
             PostService.Delete(post);
-
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.DeleteUserPost,
-            //    Message = postID
-            //});
-
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
 
             return Ok(new ResponseModel());
         }
@@ -800,13 +879,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, true, (ulong)likesCount);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -863,13 +979,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, false, (ulong)likesCount);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -936,13 +1089,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -1019,13 +1209,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, isLiked, (ulong)likes.Count);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -1105,13 +1332,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {
@@ -1183,13 +1447,50 @@ namespace SyndicateAPI.Controllers
 
             var result = new PostViewModel(post, viewComments, myPostLike, (ulong)likesCount);
 
-            //var socketMessage = JsonConvert.SerializeObject(new SocketMessage
-            //{
-            //    Type = SocketMessageType.UpdateUserPost,
-            //    Message = result
-            //});
+            if (post.Type == PostType.Group)
+            {
+                var groupPost = GroupPostService.GetAll()
+                    .FirstOrDefault(x => x.Post == post);
 
-            //await NotificationService.SendMessageToAllAsync(socketMessage);
+                if (groupPost == null)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Group post error"
+                    });
+
+                var groupMembers = GroupMemberService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                var groupSubscribers = GroupSubscriptionService.GetAll()
+                    .Where(x => x.Group == groupPost.Group && x.IsActive)
+                    .Select(x => new UserViewModel(x.User))
+                    .ToList();
+
+                foreach (var member in groupMembers)
+                    await Notifications
+                        .SendUpdateToUser(member.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+
+                foreach (var subscriber in groupSubscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.GroupPostUpdate, new
+                        { groupPostID = groupPost.ID });
+            }
+            else
+            {
+                var subscribers = UserSubscriptionService.GetAll()
+                    .Where(x => x.Subject == user && x.IsActive)
+                    .Select(x => new UserViewModel(x.Subscriber))
+                    .ToList();
+
+                foreach (var subscriber in subscribers)
+                    await Notifications
+                        .SendUpdateToUser(subscriber.ID, SocketMessageType.PostUpdate, new
+                        { postID = post.ID });
+            }
 
             return Ok(new DataResponse<PostViewModel>
             {

@@ -14,6 +14,8 @@ namespace SyndicateAPI.Storage.Mappings
             Table("map_points");
             Id(x => x.ID, "id");
 
+            References(e => e.User, "id_user");
+
             Map(u => u.Name, "name");
             Map(u => u.Message, "message");
             Map(u => u.Latitude, "latitude");

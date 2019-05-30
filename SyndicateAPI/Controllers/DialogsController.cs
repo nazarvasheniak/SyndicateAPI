@@ -9,6 +9,7 @@ using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
+using SyndicateAPI.WebSocketManager;
 
 namespace SyndicateAPI.Controllers
 {
@@ -20,15 +21,18 @@ namespace SyndicateAPI.Controllers
         private IUserService UserService { get; set; }
         private IDialogService DialogService { get; set; }
         private IDialogMessageService DialogMessageService { get; set; }
+        private NotificationsMessageHandler Notifications { get; set; }
 
         public DialogsController([FromServices]
             IUserService userService,
             IDialogService dialogService,
-            IDialogMessageService dialogMessageService)
+            IDialogMessageService dialogMessageService,
+            NotificationsMessageHandler notifications)
         {
             UserService = userService;
             DialogService = dialogService;
             DialogMessageService = dialogMessageService;
+            Notifications = notifications;
         }
 
         private DialogViewModel DialogToViewModel(Dialog dialog)
@@ -83,7 +87,7 @@ namespace SyndicateAPI.Controllers
                 .ToList();
 
             foreach (var message in messages)
-                if (!message.IsReaded)
+                if (!message.IsReaded && message.Sender != user)
                 {
                     message.IsReaded = true;
                     DialogMessageService.Update(message);
@@ -136,7 +140,7 @@ namespace SyndicateAPI.Controllers
                 .ToList();
 
             foreach (var message in messages)
-                if (!message.IsReaded)
+                if (!message.IsReaded && message.Sender != user)
                 {
                     message.IsReaded = true;
                     DialogMessageService.Update(message);
@@ -187,14 +191,19 @@ namespace SyndicateAPI.Controllers
                     StartDate = now
                 });
 
-            DialogMessageService.Create(new DialogMessage
+            var message = new DialogMessage
             {
                 Dialog = dialog,
                 Sender = user,
                 Content = request.Content,
                 Time = now,
                 IsReaded = false
-            });
+            };
+
+            DialogMessageService.Create(message);
+
+            await Notifications.SendUpdateToUser(recepient.ID, SocketMessageType.PrivateMessage,
+                new { dialogID = dialog.ID });
 
             return Ok(new ResponseModel());
         }

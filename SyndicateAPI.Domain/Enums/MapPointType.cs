@@ -16,6 +16,8 @@ namespace SyndicateAPI.Domain.Enums
         Gathering = 8,
         OffroadTrack = 9,
         Message = 10,
-        SOSMessage = 11
+        SOSMessage = 11,
+        Partner = 12,
+        Mission = 13
     }
 }

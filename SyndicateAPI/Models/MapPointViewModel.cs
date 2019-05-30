@@ -14,6 +14,7 @@ namespace SyndicateAPI.Models
         public string Message { get; set; }
         public CoordinatesViewModel Coordinates { get; set; }
         public MapPointType MapPointType { get; set; }
+        public UserViewModel User { get; set; }
 
         public MapPointViewModel() { }
 
@@ -26,6 +27,7 @@ namespace SyndicateAPI.Models
                 Message = point.Message;
                 Coordinates = new CoordinatesViewModel(point.Latitude, point.Longitude);
                 MapPointType = point.MapPointType;
+                User = new UserViewModel(point.User);
             }
         }
     }

@@ -770,7 +770,8 @@ namespace SyndicateAPI.Controllers
                 CityName = user.Person.City.Name,
                 Biography = user.Person.Biography,
                 Awards = awards,
-                Vehicles = viewVehicles
+                Vehicles = viewVehicles,
+                IsOnline = user.IsOnline
             };
 
             var groupMember = GroupMemberService.GetAll()

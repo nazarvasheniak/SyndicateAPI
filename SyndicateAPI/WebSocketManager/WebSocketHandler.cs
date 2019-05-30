@@ -47,11 +47,11 @@ namespace SyndicateAPI.WebSocketManager
 
         }
 
-        public async Task SendMessageAsync(string socketId, string message)
+        public virtual async Task SendMessageAsync(string socketId, string message)
         {
             try
             {
-                await SendMessageAsync(WebSocketConnectionManager.GetSocketById(socketId), message);
+                await SendMessageAsync(socketId, message);
             }
             catch (Exception ex)
             {

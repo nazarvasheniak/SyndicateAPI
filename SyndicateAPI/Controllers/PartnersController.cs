@@ -35,11 +35,20 @@ namespace SyndicateAPI.Controllers
             FileService = fileService;
         }
 
+        private PartnerViewModel PartnerToViewModel(Partner partner)
+        {
+            var products = PartnerProductService.GetAll()
+                .Where(x => x.Partner == partner)
+                .ToList();
+
+            return new PartnerViewModel(partner, products);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAllPartners()
         {
             var partners = PartnerService.GetAll()
-                .Select(x => new PartnerViewModel(x))
+                .Select(x => PartnerToViewModel(x))
                 .ToList();
 
             return Ok(new DataResponse<List<PartnerViewModel>>
@@ -61,7 +70,7 @@ namespace SyndicateAPI.Controllers
 
             return Ok(new DataResponse<PartnerViewModel>
             {
-                Data = new PartnerViewModel(partner)
+                Data = PartnerToViewModel(partner)
             });
         }
 
@@ -80,13 +89,16 @@ namespace SyndicateAPI.Controllers
 
             return Ok(new DataResponse<PartnerViewModel>
             {
-                Data = new PartnerViewModel(partner)
+                Data = PartnerToViewModel(partner)
             });
         }
 
         [HttpPost]
         public async Task<IActionResult> CreatePartner([FromBody] CreatePartnerRequest request)
         {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
             var partner = PartnerService.GetAll()
                 .FirstOrDefault(x => x.Name == request.Name);
 
@@ -121,7 +133,8 @@ namespace SyndicateAPI.Controllers
                 MapIcon = icon,
                 Latitude = request.Latitude,
                 Longitude = request.Longitude,
-                MapPointType = request.MapPointType
+                MapPointType = request.MapPointType,
+                Creator = user
             };
 
             PartnerService.Create(partner);
@@ -137,7 +150,7 @@ namespace SyndicateAPI.Controllers
 
             return Ok(new DataResponse<PartnerViewModel>
             {
-                Data = new PartnerViewModel(partner)
+                Data = PartnerToViewModel(partner)
             });
         }
     }

@@ -13,6 +13,7 @@ namespace SyndicateAPI.Domain.Models
         public virtual double Latitude { get; set; }
         public virtual double Longitude { get; set; }
         public virtual MapPointType MapPointType { get; set; }
+        public virtual User User { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

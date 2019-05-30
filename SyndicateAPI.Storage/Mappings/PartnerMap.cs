@@ -16,6 +16,7 @@ namespace SyndicateAPI.Storage.Mappings
 
             References(e => e.Logo, "id_logo");
             References(e => e.MapIcon, "id_icon");
+            References(e => e.Creator, "id_creator");
 
             Map(u => u.Name, "name");
             Map(u => u.Description, "description");

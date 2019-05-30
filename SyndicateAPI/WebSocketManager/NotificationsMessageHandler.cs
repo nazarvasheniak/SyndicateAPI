@@ -26,6 +26,17 @@ namespace SyndicateAPI.WebSocketManager
             //myTimer.Start();
         }
 
+        public async Task SendUpdateToUser(long userID, SocketMessageType type, object message)
+        {
+            var socketUser = socketUsers.FirstOrDefault(x => x.UserID == userID);
+            if (socketUser == null)
+                return;
+
+            var msg = JsonConvert.SerializeObject(new SocketMessageUpdate(type, message));
+
+            await SendMessageAsync(socketUser.ID, msg);
+        }
+
         public override async Task OnDisconnected(WebSocket socket)
         {
             var socketId = WebSocketConnectionManager.GetId(socket);
