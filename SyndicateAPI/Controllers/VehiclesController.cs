@@ -218,10 +218,24 @@ namespace SyndicateAPI.Controllers
                 .Where(x => x.Vehicle == vehicle)
                 .ToList();
 
-            return Ok(new DataResponse<VehicleViewModel>
+            var result = new CreateVehicleResponse { Data = new VehicleViewModel(vehicle, photos) };
+            if (user.PointsCount < 100)
             {
-                Data = new VehicleViewModel(vehicle, photos)
-            });
+                var userVehicles = VehicleService.GetAll()
+                    .Where(x => x.Owner == user)
+                    .ToList();
+
+                if (userVehicles.Count == 1)
+                {
+                    result.BonusPoints += 40;
+                    result.Message = $"Вам начислено {result.BonusPoints} за добавление авто в гараж";
+
+                    user.PointsCount += 40;
+                    UserService.Update(user);
+                }
+            }
+
+            return Ok(result);
         }
 
         [HttpPut("{id}")]

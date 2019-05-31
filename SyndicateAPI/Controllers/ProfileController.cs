@@ -125,6 +125,8 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
+            var result = new UpdateProfileResponse();
+
             if (request.FirstName != null && !request.FirstName.Equals(user.Person.FirstName))
                 user.Person.FirstName = request.FirstName;
 
@@ -160,11 +162,31 @@ namespace SyndicateAPI.Controllers
                         });
 
                     user.Avatar = avatar;
+
+                    if (user.PointsCount < 100)
+                    {
+                        user.PointsCount += 30;
+                        result.BonusPoints += 30;
+                        result.Message = $"Вам начислено {result.BonusPoints} за обновление аватарки";
+                    }
                 }
             }
 
             if (request.Biography != null && !request.Biography.Equals(user.Person.Biography))
+            {
                 user.Person.Biography = request.Biography;
+
+                if (user.PointsCount < 100)
+                {
+                    user.PointsCount += 30;
+                    result.BonusPoints += 30;
+
+                    if (result.Message.Equals("OK"))
+                        result.Message = $"Вам начислено {result.BonusPoints} за обновление информации о себе";
+                    else
+                        result.Message += $" и обновление информации о себе";
+                }
+            }
 
             if (request.Password != null && !request.Password.Equals(user.Password))
             {
@@ -203,10 +225,9 @@ namespace SyndicateAPI.Controllers
                 viewModel.Person.Email = temp.Email;
             }
 
-            return Json(new DataResponse<UserViewModel>
-            {
-                Data = viewModel
-            });
+            result.Data = viewModel;
+
+            return Json(result);
         }
 
         [HttpPost("subscribe")]

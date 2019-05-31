@@ -23,6 +23,8 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.ActivationTime, "activation_time");
             Map(u => u.IsActive, "is_active").Not.Nullable();
             Map(u => u.IsOnline, "is_online").Not.Nullable();
+            Map(u => u.Latitude, "latitude");
+            Map(u => u.Longitude, "longitude");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

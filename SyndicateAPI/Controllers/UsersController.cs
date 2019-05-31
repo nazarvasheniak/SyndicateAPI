@@ -241,9 +241,11 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
-            return Ok(new DataResponse<bool>
+            return Ok(new GetOnlineStatusResponse
             {
-                Data = user.IsOnline
+                IsOnline = user.IsOnline,
+                Latitude = user.Latitude,
+                Longitude = user.Longitude
             });
         }
 

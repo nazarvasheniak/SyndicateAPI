@@ -13,7 +13,7 @@ using SyndicateAPI.Models.Response;
 
 namespace SyndicateAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/codes")]
     [ApiController]
     [Authorize]
     public class CodesController : Controller
@@ -91,6 +91,13 @@ namespace SyndicateAPI.Controllers
                     Message = "Код не действителен"
                 });
 
+            if (code.Creator == user)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Код не действителен"
+                });
+
             if (code.ExpiresDate < DateTime.UtcNow)
                 return BadRequest(new ResponseModel
                 {
@@ -104,7 +111,10 @@ namespace SyndicateAPI.Controllers
             user.PointsCount += code.PointsCount;
             UserService.Update(user);
 
-            return Ok(new ResponseModel());
+            return Ok(new SubmitPointsCodeResponse
+            {
+                PointsAwarded = code.PointsCount
+            });
         }
 
         private long RandomNumber()
