@@ -88,21 +88,21 @@ namespace SyndicateAPI.Controllers
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "Код не действителен"
+                    Message = "Код уже был использован"
                 });
 
             if (code.Creator == user)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "Код не действителен"
+                    Message = "Нельзя начислять баллы самому себе"
                 });
 
             if (code.ExpiresDate < DateTime.UtcNow)
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "Код не действителен"
+                    Message = "Время действия кода истекло"
                 });
 
             code.IsUsed = true;

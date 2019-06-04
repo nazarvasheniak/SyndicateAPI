@@ -232,7 +232,8 @@ namespace SyndicateAPI.Controllers
                 Biography = user.Person.Biography,
                 Awards = awards,
                 Vehicles = viewVehicles,
-                IsOnline = user.IsOnline
+                IsOnline = user.IsOnline,
+                Coordinates = new CoordinatesViewModel(user.Latitude, user.Longitude)
             };
 
             var groupMember = GroupMemberService.GetAll()

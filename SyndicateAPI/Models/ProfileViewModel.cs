@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using SyndicateAPI.Domain.Models;
+using System.Collections.Generic;
 
 namespace SyndicateAPI.Models
 {
@@ -20,5 +21,6 @@ namespace SyndicateAPI.Models
         public List<UserViewModel> Subscribers { get; set; }
         public List<UserViewModel> Subscriptions { get; set; }
         public bool IsOnline { get; set; }
+        public CoordinatesViewModel Coordinates { get; set; }
     }
 }

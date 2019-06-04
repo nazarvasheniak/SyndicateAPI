@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SyndicateAPI.BusinessLogic.Interfaces;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
@@ -53,9 +54,7 @@ namespace SyndicateAPI.Controllers
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
             var dialogs = DialogService.GetAll()
-                .Where(x =>
-                    x.Participant1 == user ||
-                    x.Participant2 == user)
+                .Where(x => x.FromUser == user || x.ToUser == user)
                 .OrderByDescending(x => x.StartDate)
                 .Select(x => DialogToViewModel(x))
                 .ToList();
@@ -79,9 +78,6 @@ namespace SyndicateAPI.Controllers
                     Data = new List<DialogMessageViewModel>()
                 });
 
-            if (dialog.Participant1 != user && dialog.Participant2 != user)
-                return Forbid();
-
             var messages = DialogMessageService.GetAll()
                 .Where(x => x.Dialog == dialog)
                 .ToList();
@@ -95,7 +91,7 @@ namespace SyndicateAPI.Controllers
 
             var result = messages
                 .OrderByDescending(x => x.Time)
-                .Select(x => new DialogMessageViewModel(x))
+                .Select(x => new DialogMessageViewModel(x, x.Dialog.FromUser == user))
                 .Skip((request.PageNumber - 1) * request.PageCount)
                 .Take(request.PageCount)
                 .ToList();
@@ -122,18 +118,17 @@ namespace SyndicateAPI.Controllers
                 });
 
             var dialog = DialogService.GetAll()
-                .FirstOrDefault(x =>
-                    x.Participant1 == participant ||
-                    x.Participant2 == participant);
+                .FirstOrDefault(x => x.ToUser == participant && x.FromUser == user);
+
+            if (dialog == null)
+                dialog = DialogService.GetAll()
+                    .FirstOrDefault(x => x.ToUser == user && x.FromUser == participant);
 
             if (dialog == null)
                 return Ok(new DataResponse<List<DialogMessageViewModel>>
                 {
                     Data = new List<DialogMessageViewModel>()
                 });
-
-            if (dialog.Participant1 != user && dialog.Participant2 != user)
-                return Forbid();
 
             var messages = DialogMessageService.GetAll()
                 .Where(x => x.Dialog == dialog)
@@ -148,7 +143,7 @@ namespace SyndicateAPI.Controllers
 
             var result = messages
                 .OrderByDescending(x => x.Time)
-                .Select(x => new DialogMessageViewModel(x))
+                .Select(x => new DialogMessageViewModel(x, x.Dialog.FromUser == user))
                 .Skip((request.PageNumber - 1) * request.PageCount)
                 .Take(request.PageCount)
                 .ToList();
@@ -168,6 +163,13 @@ namespace SyndicateAPI.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
+            if (user.ID == request.RecipientID)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Нельзя отправлять сообщения самому себе"
+                });
+
             var recepient = UserService.Get(request.RecipientID);
             if (recepient == null)
                 return NotFound(new ResponseModel
@@ -177,23 +179,24 @@ namespace SyndicateAPI.Controllers
                 });
 
             var dialog = DialogService.GetAll()
-                .FirstOrDefault(x =>
-                    x.Participant1 == user ||
-                    x.Participant2 == user ||
-                    x.Participant1 == recepient ||
-                    x.Participant2 == recepient);
+                .FirstOrDefault(x => x.ToUser == recepient && x.FromUser == user);
+
+            if (dialog == null)
+                dialog = DialogService.GetAll()
+                    .FirstOrDefault(x => x.ToUser == user && x.FromUser == recepient);
 
             if (dialog == null)
                 DialogService.Create(dialog = new Dialog
                 {
-                    Participant1 = user,
-                    Participant2 = recepient,
+                    FromUser = user,
+                    ToUser = recepient,
                     StartDate = now
                 });
 
             var message = new DialogMessage
             {
                 Dialog = dialog,
+                Type = DialogMessageType.Outgoing,
                 Sender = user,
                 Content = request.Content,
                 Time = now,

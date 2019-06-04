@@ -1,4 +1,5 @@
 ﻿using FluentNHibernate.Mapping;
+using SyndicateAPI.Domain.Enums;
 using SyndicateAPI.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,10 @@ namespace SyndicateAPI.Storage.Mappings
             Table("dialog_messages");
             Id(u => u.ID, "id");
 
-            References(e => e.Sender, "id_sender");
             References(e => e.Dialog, "id_dialog");
+            References(e => e.Sender, "id_sender");
 
+            Map(u => u.Type, "message_type").CustomType<DialogMessageType>();
             Map(u => u.Content, "message_content");
             Map(u => u.Time, "message_time");
             Map(u => u.IsReaded, "is_readed");

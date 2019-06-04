@@ -6,8 +6,8 @@ namespace SyndicateAPI.Models
     public class DialogViewModel
     {
         public long ID { get; set; }
-        public UserViewModel Participant1 { get; set; }
-        public UserViewModel Participant2 { get; set; }
+        public UserViewModel FromUser { get; set; }
+        public UserViewModel ToUser { get; set; }
         public DateTime StartDate { get; set; }
         public DialogMessageViewModel LastMessage { get; set; } 
 
@@ -18,8 +18,8 @@ namespace SyndicateAPI.Models
             if (dialog != null)
             {
                 ID = dialog.ID;
-                Participant1 = new UserViewModel(dialog.Participant1);
-                Participant2 = new UserViewModel(dialog.Participant2);
+                FromUser = new UserViewModel(dialog.FromUser);
+                ToUser = new UserViewModel(dialog.ToUser);
                 StartDate = dialog.StartDate;
                 LastMessage = new DialogMessageViewModel(lastMessage);
             }
@@ -30,8 +30,8 @@ namespace SyndicateAPI.Models
             if (dialog != null)
             {
                 ID = dialog.ID;
-                Participant1 = new UserViewModel(dialog.Participant1);
-                Participant2 = new UserViewModel(dialog.Participant2);
+                FromUser = new UserViewModel(dialog.FromUser);
+                ToUser = new UserViewModel(dialog.ToUser);
                 StartDate = dialog.StartDate;
                 LastMessage = lastMessage;
             }
@@ -42,8 +42,8 @@ namespace SyndicateAPI.Models
             if (dialog != null)
             {
                 ID = dialog.ID;
-                Participant1 = dialog.Participant1;
-                Participant2 = dialog.Participant2;
+                FromUser = dialog.FromUser;
+                ToUser = dialog.ToUser;
                 StartDate = dialog.StartDate;
                 LastMessage = lastMessage;
             }
@@ -54,8 +54,8 @@ namespace SyndicateAPI.Models
             if (dialog != null)
             {
                 ID = dialog.ID;
-                Participant1 = dialog.Participant1;
-                Participant2 = dialog.Participant2;
+                FromUser = dialog.FromUser;
+                ToUser = dialog.ToUser;
                 StartDate = dialog.StartDate;
                 LastMessage = new DialogMessageViewModel(lastMessage);
             }

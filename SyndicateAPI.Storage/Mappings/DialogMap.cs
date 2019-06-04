@@ -10,8 +10,8 @@ namespace SyndicateAPI.Storage.Mappings
             Table("dialogs");
             Id(u => u.ID, "id");
 
-            References(e => e.Participant1, "id_participant1");
-            References(e => e.Participant2, "id_participant2");
+            References(e => e.FromUser, "id_from");
+            References(e => e.ToUser, "id_to");
 
             Map(u => u.StartDate, "start_date");
             Map(u => u.Deleted, "deleted").Not.Nullable();
