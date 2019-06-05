@@ -18,24 +18,13 @@ namespace SyndicateAPI.Models
 
         public DialogMessageViewModel() { }
 
-        public DialogMessageViewModel(DialogMessage message)
-        {
-            if (message != null)
-            {
-                ID = message.ID;
-                Type = message.Type;
-                Content = message.Content;
-                Time = message.Time;
-                IsReaded = message.IsReaded;
-            }
-        }
-
         public DialogMessageViewModel(DialogMessage message, bool isSender)
         {
             if (message != null)
             {
                 ID = message.ID;
                 Type = message.Type;
+                Sender = new UserViewModel(message.Sender);
                 Content = message.Content;
                 Time = message.Time;
                 IsReaded = message.IsReaded;

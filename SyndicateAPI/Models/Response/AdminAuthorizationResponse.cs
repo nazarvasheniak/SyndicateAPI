@@ -8,6 +8,5 @@ namespace SyndicateAPI.Models.Response
     public class AdminAuthorizationResponse : ResponseModel
     {
         public string Token { get; set; }
-        public AdminUserViewModel User { get; set; }
     }
 }

@@ -24,6 +24,7 @@ namespace SyndicateAPI.Controllers
         private IVehicleDriveService VehicleDriveService { get; set; }
         private IVehicleTransmissionService VehicleTransmissionService { get; set; }
         private IVehicleBodyService VehicleBodyService { get; set; }
+        private IStartRewardService StartRewardService { get; set; }
 
         public VehiclesController([FromServices]
             IUserService userService,
@@ -33,7 +34,8 @@ namespace SyndicateAPI.Controllers
             IVehicleCategoryService vehicleCategoryService,
             IVehicleDriveService vehicleDriveService,
             IVehicleTransmissionService vehicleTransmissionService,
-            IVehicleBodyService vehicleBodyService)
+            IVehicleBodyService vehicleBodyService,
+            IStartRewardService startRewardService)
         {
             UserService = userService;
             FileService = fileService;
@@ -43,6 +45,7 @@ namespace SyndicateAPI.Controllers
             VehicleDriveService = vehicleDriveService;
             VehicleTransmissionService = vehicleTransmissionService;
             VehicleBodyService = vehicleBodyService;
+            StartRewardService = startRewardService;
         }
 
         [HttpPost("createStartData")]
@@ -214,25 +217,19 @@ namespace SyndicateAPI.Controllers
                 }
             }
 
-            var photos = VehiclePhotoService.GetAll()
-                .Where(x => x.Vehicle == vehicle)
-                .ToList();
+            var result = new CreateVehicleResponse { Data = VehicleToViewModel(vehicle) };
 
-            var result = new CreateVehicleResponse { Data = new VehicleViewModel(vehicle, photos) };
-            if (user.PointsCount < 100)
+            var startReward = StartRewardService.GetAll().FirstOrDefault(x => x.User == user);
+            if (!startReward.IsVehicleCompleted)
             {
-                var userVehicles = VehicleService.GetAll()
-                    .Where(x => x.Owner == user)
-                    .ToList();
+                result.BonusPoints += 40;
+                result.Message = $"Вам начислено {result.BonusPoints} за добавление авто в гараж";
 
-                if (userVehicles.Count == 1)
-                {
-                    result.BonusPoints += 40;
-                    result.Message = $"Вам начислено {result.BonusPoints} за добавление авто в гараж";
+                user.PointsCount += 40;
+                UserService.Update(user);
 
-                    user.PointsCount += 40;
-                    UserService.Update(user);
-                }
+                startReward.IsVehicleCompleted = true;
+                StartRewardService.Update(startReward);
             }
 
             return Ok(result);
@@ -368,13 +365,9 @@ namespace SyndicateAPI.Controllers
 
             VehicleService.Update(vehicle);
 
-            var photos = VehiclePhotoService.GetAll()
-                .Where(x => x.Vehicle == vehicle)
-                .ToList();
-
             return Ok(new DataResponse<VehicleViewModel>
             {
-                Data = new VehicleViewModel(vehicle, photos)
+                Data = VehicleToViewModel(vehicle)
             });
         }
 
@@ -422,21 +415,12 @@ namespace SyndicateAPI.Controllers
 
             var vehicles = VehicleService.GetAll()
                 .Where(x => x.Owner == user)
+                .Select(x => VehicleToViewModel(x))
                 .ToList();
-
-            var data = new List<VehicleViewModel>();
-            foreach (var vehicle in vehicles)
-            {
-                var photos = VehiclePhotoService.GetAll()
-                    .Where(x => x.Vehicle == vehicle)
-                    .ToList();
-
-                data.Add(new VehicleViewModel(vehicle, photos));
-            }
 
             return Ok(new DataResponse<List<VehicleViewModel>>
             {
-                Data = data
+                Data = vehicles
             });
         }
         
@@ -526,6 +510,150 @@ namespace SyndicateAPI.Controllers
                     Bodies = bodies
                 }
             });
+        }
+
+        [HttpGet("unapproved")]
+        [Authorize]
+        public async Task<IActionResult> GetUnapprovedVehicles()
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            if (user.PointsCount < 10001)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Действие доступно только для Синдиката"
+                });
+
+            var vehicles = VehicleService.GetAll()
+                .Where(x => x.ApproveStatus == VehicleApproveStatus.NotApproved)
+                .Select(x => VehicleToViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<VehicleViewModel>>
+            {
+                Data = vehicles
+            });
+        }
+
+        [HttpPost("{id}/approve")]
+        [Authorize]
+        public async Task<IActionResult> ApproveVehicle(long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            if (user.PointsCount < 10001)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Действие доступно только для Синдиката"
+                });
+
+            var vehicle = VehicleService.Get(id);
+            if (vehicle == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Автомобиль не найден"
+                });
+
+            vehicle.ApproveStatus = VehicleApproveStatus.Approved;
+            VehicleService.Update(vehicle);
+
+            return Ok(new DataResponse<VehicleViewModel>
+            {
+                Data = VehicleToViewModel(vehicle)
+            });
+        }
+
+        [HttpPost("{id}/decline")]
+        [Authorize]
+        public async Task<IActionResult> DeclineVehicle(long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            if (user.PointsCount < 10001)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Действие доступно только для Синдиката"
+                });
+
+            var vehicle = VehicleService.Get(id);
+            if (vehicle == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Автомобиль не найден"
+                });
+
+            vehicle.ApproveStatus = VehicleApproveStatus.Declined;
+            VehicleService.Update(vehicle);
+
+            return Ok(new DataResponse<VehicleViewModel>
+            {
+                Data = VehicleToViewModel(vehicle)
+            });
+        }
+
+        [HttpPut("{id}/approve/photo")]
+        [Authorize]
+        public async Task<IActionResult> UpdateConfirmationPhoto([FromBody] UpdateVehicleConfirmPhotoRequest request, long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            var vehicle = VehicleService.Get(id);
+            if (vehicle == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Автомобиль не найден"
+                });
+
+            if (vehicle.Owner != user)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Вы не можете редактировать чужой автомобиль"
+                });
+
+            if (request.PhotoID == 0)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "ID фото не может быть 0"
+                });
+
+            var photo = FileService.Get(request.PhotoID);
+            if (photo == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Фото не найдено"
+                });
+
+            vehicle.ConfirmationPhoto = photo;
+            VehicleService.Update(vehicle);
+
+            return Ok(new DataResponse<VehicleViewModel>
+            {
+                Data = VehicleToViewModel(vehicle)
+            });
+        }
+
+        private VehicleViewModel VehicleToViewModel(Vehicle vehicle)
+        {
+            var photos = VehiclePhotoService.GetAll()
+                .Where(x => x.Vehicle == vehicle)
+                .ToList();
+
+            var result = new VehicleViewModel(vehicle, photos);
+
+            return result;
         }
     }
 }

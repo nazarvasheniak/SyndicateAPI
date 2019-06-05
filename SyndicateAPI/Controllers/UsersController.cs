@@ -205,7 +205,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                 return BadRequest(new ResponseModel
                 {
                     Success = false,
-                    Message = "Wrong username or password"
+                    Message = "Неверный логин или пароль"
                 });
 
             var user = AdminUserService.GetAll()
@@ -213,19 +213,24 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 
             return Ok(new AdminAuthorizationResponse
             {
-                Token = authToken,
-                User = new AdminUserViewModel(user)
+                Token = authToken
             });
         }
 
-        [HttpPost("online/{isOnline}")]
+        [HttpPost("online")]
         [Authorize]
-        public async Task<IActionResult> SetOnlineStatus(bool isOnline)
+        public async Task<IActionResult> SetOnlineStatus([FromBody] SetOnlineStatusRequest request)
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
 
-            user.IsOnline = isOnline;
+            user.IsOnline = request.IsOnline;
+            if (request.IsOnline)
+            {
+                user.Latitude = request.Latitude;
+                user.Longitude = request.Longitude;
+            }
+
             UserService.Update(user);
 
             return Ok(new DataResponse<UserViewModel>

@@ -39,6 +39,7 @@ namespace SyndicateAPI.Controllers
         private IPostLikeService PostLikeService { get; set; }
         private IPostCommentService PostCommentService { get; set; }
         private IPostCommentLikeService PostCommentLikeService { get; set; }
+        private IStartRewardService StartRewardService { get; set; }
 
         public ProfileController([FromServices]
             IUserService userService,
@@ -61,7 +62,8 @@ namespace SyndicateAPI.Controllers
             IPostService postService,
             IPostLikeService postLikeService,
             IPostCommentService postCommentService,
-            IPostCommentLikeService postCommentLikeService)
+            IPostCommentLikeService postCommentLikeService,
+            IStartRewardService startRewardService)
         {
             UserService = userService;
             UserTempService = userTempService;
@@ -84,6 +86,7 @@ namespace SyndicateAPI.Controllers
             PostLikeService = postLikeService;
             PostCommentService = postCommentService;
             PostCommentLikeService = postCommentLikeService;
+            StartRewardService = startRewardService;
         }
 
         [HttpGet]
@@ -163,11 +166,15 @@ namespace SyndicateAPI.Controllers
 
                     user.Avatar = avatar;
 
-                    if (user.PointsCount < 100)
+                    var startReward = StartRewardService.GetAll().FirstOrDefault(x => x.User == user);
+                    if (!startReward.IsAvatarCompleted)
                     {
                         user.PointsCount += 30;
                         result.BonusPoints += 30;
                         result.Message = $"Вам начислено {result.BonusPoints} за обновление аватарки";
+
+                        startReward.IsAvatarCompleted = true;
+                        StartRewardService.Update(startReward);
                     }
                 }
             }
@@ -176,7 +183,8 @@ namespace SyndicateAPI.Controllers
             {
                 user.Person.Biography = request.Biography;
 
-                if (user.PointsCount < 100)
+                var startReward = StartRewardService.GetAll().FirstOrDefault(x => x.User == user);
+                if (!startReward.IsBiographyCompleted)
                 {
                     user.PointsCount += 30;
                     result.BonusPoints += 30;
@@ -185,6 +193,9 @@ namespace SyndicateAPI.Controllers
                         result.Message = $"Вам начислено {result.BonusPoints} за обновление информации о себе";
                     else
                         result.Message += $" и обновление информации о себе";
+
+                    startReward.IsBiographyCompleted = true;
+                    StartRewardService.Update(startReward);
                 }
             }
 

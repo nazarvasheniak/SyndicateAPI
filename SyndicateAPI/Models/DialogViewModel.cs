@@ -21,7 +21,11 @@ namespace SyndicateAPI.Models
                 FromUser = new UserViewModel(dialog.FromUser);
                 ToUser = new UserViewModel(dialog.ToUser);
                 StartDate = dialog.StartDate;
-                LastMessage = new DialogMessageViewModel(lastMessage);
+                
+                if (lastMessage.Sender.ID == dialog.FromUser.ID)
+                    LastMessage = new DialogMessageViewModel(lastMessage, true);
+                else
+                    LastMessage = new DialogMessageViewModel(lastMessage, false);
             }
         }
 
@@ -57,7 +61,11 @@ namespace SyndicateAPI.Models
                 FromUser = dialog.FromUser;
                 ToUser = dialog.ToUser;
                 StartDate = dialog.StartDate;
-                LastMessage = new DialogMessageViewModel(lastMessage);
+
+                if (lastMessage.Sender.ID == dialog.FromUser.ID)
+                    LastMessage = new DialogMessageViewModel(lastMessage, true);
+                else
+                    LastMessage = new DialogMessageViewModel(lastMessage, false);
             }
         }
     }

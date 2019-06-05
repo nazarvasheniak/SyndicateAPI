@@ -24,6 +24,7 @@ namespace SyndicateAPI.Storage.Mappings
             Map(u => u.Year, "year");
             Map(u => u.Price, "price");
             Map(u => u.ApproveStatus, "approve_status").CustomType<VehicleApproveStatus>();
+            Map(u => u.ConfirmationText, "conf_text");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

@@ -15,6 +15,7 @@ namespace SyndicateAPI.Domain.Models
         public virtual VehicleBody Body { get; set; }
         public virtual User Owner { get; set; }
         public virtual File ConfirmationPhoto { get; set; }
+        public virtual string ConfirmationText { get; set; }
         public virtual VehicleApproveStatus ApproveStatus { get; set; }
         public virtual bool Deleted { get; set; }
     }

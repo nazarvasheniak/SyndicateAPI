@@ -38,5 +38,8 @@ namespace SyndicateAPI.Models.Request
 
         [Required]
         public long ConfirmationPhotoID { get; set; }
+
+        [Required]
+        public string ConfirmationText { get; set; }
     }
 }

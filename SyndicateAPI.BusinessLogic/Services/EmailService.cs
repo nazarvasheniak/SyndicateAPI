@@ -29,5 +29,23 @@ namespace SyndicateAPI.BusinessLogic.Services
 
             return await SMTPHelper.SendMail(message);
         }
+
+        public async Task<bool> SendSupportMessage(string from, string name, string msg, bool isAuthenticated)
+        {
+            string isAuthenticatedStr;
+            if (isAuthenticated)
+                isAuthenticatedStr = "Да";
+            else
+                isAuthenticatedStr = "Нет";
+
+            var message = new SendMailModel
+            {
+                MailTo = "zks@d-syndicate.ru",
+                Subject = "[Syndicate] Сообщение из формы обратной связи",
+                Message = $"Email отправителя: {from}<br>Имя отправителя: {name}<br>Авторизован: {isAuthenticatedStr}<br>Сообщение: {msg}"
+            };
+
+            return await SMTPHelper.SendMail(message);
+        }
     }
 }
