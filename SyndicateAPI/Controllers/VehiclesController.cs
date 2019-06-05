@@ -570,7 +570,7 @@ namespace SyndicateAPI.Controllers
 
         [HttpPost("{id}/decline")]
         [Authorize]
-        public async Task<IActionResult> DeclineVehicle(long id)
+        public async Task<IActionResult> DeclineVehicle([FromBody] DeclineVehicleRequest request, long id)
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
@@ -590,7 +590,11 @@ namespace SyndicateAPI.Controllers
                     Message = "Автомобиль не найден"
                 });
 
-            vehicle.ApproveStatus = VehicleApproveStatus.Declined;
+            if (request.IsPhotoRequire)
+                vehicle.ApproveStatus = VehicleApproveStatus.UpdatePhoto;
+            else
+                vehicle.ApproveStatus = VehicleApproveStatus.Declined;
+
             VehicleService.Update(vehicle);
 
             return Ok(new DataResponse<VehicleViewModel>

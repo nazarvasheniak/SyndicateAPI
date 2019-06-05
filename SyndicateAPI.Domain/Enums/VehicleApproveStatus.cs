@@ -8,6 +8,7 @@ namespace SyndicateAPI.Domain.Enums
     {
         NotApproved = 0,
         Approved = 1,
-        Declined = 2
+        Declined = 2,
+        UpdatePhoto = 3
     }
 }
