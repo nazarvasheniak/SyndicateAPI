@@ -20,6 +20,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         private IPersonService PersonService { get; set; }
         private ICityService CityService { get; set; }
         private IEmailService EmailService { get; set; }
+        private IStartRewardService StartRewardService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
@@ -27,7 +28,8 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             IAdminUserService adminUserService,
             IPersonService personService,
             ICityService cityService,
-            IEmailService emailService)
+            IEmailService emailService,
+            IStartRewardService startRewardService)
         {
             UserService = userService;
             UserTempService = userTempService;
@@ -35,6 +37,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             PersonService = personService;
             CityService = cityService;
             EmailService = emailService;
+            StartRewardService = startRewardService;
         }
 
         [HttpPost("reg")]
@@ -71,6 +74,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 
             var person = PersonService.CreatePerson(request.FirstName, request.LastName, request.Email, city);
             var user = UserService.CreateUser(request.Nickname, request.Password, person);
+            var startReward = StartRewardService.CreateStartReward(user);
 
             var activationMessage = EmailService.SendActivationMessage(user.Login, user.ActivationCode);
             activationMessage.Wait();

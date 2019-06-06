@@ -12,5 +12,20 @@ namespace SyndicateAPI.BusinessLogic.Services
         public StartRewardService(IRepository<StartReward> repository) : base(repository)
         {
         }
+
+        public StartReward CreateStartReward(User user)
+        {
+            var startReward = new StartReward
+            {
+                IsAvatarCompleted = false,
+                IsBiographyCompleted = false,
+                IsVehicleCompleted = false,
+                User = user
+            };
+
+            Create(startReward);
+
+            return startReward;
+        }
     }
 }

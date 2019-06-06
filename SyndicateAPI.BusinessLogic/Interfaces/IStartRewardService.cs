@@ -7,5 +7,6 @@ namespace SyndicateAPI.BusinessLogic.Interfaces
 {
     public interface IStartRewardService : IBaseCrudService<StartReward>
     {
+        StartReward CreateStartReward(User user);
     }
 }
