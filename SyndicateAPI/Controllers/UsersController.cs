@@ -15,6 +15,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
     public class UsersController : Controller
     {
         private IUserService UserService { get; set; }
+        private IUserSessionService UserSessionService { get; set; }
         private IUserTempService UserTempService { get; set; }
         private IAdminUserService AdminUserService { get; set; }
         private IPersonService PersonService { get; set; }
@@ -24,6 +25,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
 
         public UsersController([FromServices]
             IUserService userService,
+            IUserSessionService userSessionService,
             IUserTempService userTempService,
             IAdminUserService adminUserService,
             IPersonService personService,
@@ -32,6 +34,7 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             IStartRewardService startRewardService)
         {
             UserService = userService;
+            UserSessionService = userSessionService;
             UserTempService = userTempService;
             AdminUserService = adminUserService;
             PersonService = personService;
@@ -75,6 +78,8 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             var person = PersonService.CreatePerson(request.FirstName, request.LastName, request.Email, city);
             var user = UserService.CreateUser(request.Nickname, request.Password, person);
             var startReward = StartRewardService.CreateStartReward(user);
+
+            //UserSessionService.CreateSession(user);
 
             var activationMessage = EmailService.SendActivationMessage(user.Login, user.ActivationCode);
             activationMessage.Wait();
@@ -194,6 +199,9 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.Login == request.Login);
 
+            //if (!UserSessionService.IsSessionActive(user))
+            //    UserSessionService.RefreshSession(user);
+
             return Ok(new AuthorizationResponse
             {
                 Token = authToken,
@@ -236,6 +244,8 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             }
 
             UserService.Update(user);
+            //if (!UserSessionService.IsSessionActive(user))
+            //    UserSessionService.RefreshSession(user);
 
             return Ok(new DataResponse<UserViewModel>
             {
@@ -249,6 +259,9 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.ID.ToString() == User.Identity.Name);
+
+            //if (!UserSessionService.IsSessionActive(user))
+            //    UserSessionService.RefreshSession(user);
 
             return Ok(new GetOnlineStatusResponse
             {
@@ -269,6 +282,12 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
                     Success = false,
                     Message = "User not found"
                 });
+
+            var requestor = UserService.GetAll()
+                .FirstOrDefault(x => x.ID.ToString().Equals(User.Identity.Name));
+
+            //if (!UserSessionService.IsSessionActive(requestor))
+            //    UserSessionService.RefreshSession(requestor);
 
             return Ok(new GetOnlineStatusResponse
             {

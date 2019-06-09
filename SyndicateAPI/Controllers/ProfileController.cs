@@ -179,7 +179,7 @@ namespace SyndicateAPI.Controllers
                 }
             }
 
-            if (request.Biography != null && !request.Biography.Equals(user.Person.Biography))
+            if (request.Biography != null && request.Biography != user.Person.Biography)
             {
                 user.Person.Biography = request.Biography;
 

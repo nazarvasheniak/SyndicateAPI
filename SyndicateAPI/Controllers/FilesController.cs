@@ -167,5 +167,17 @@ namespace SyndicateAPI.Controllers
                 FileID = file.ID
             });
         }
+
+        [HttpPost("form-data")]
+        public async Task<IActionResult> UploadFileFormData([FromBody] UploadFileFormDataRequest request)
+        {
+            return Forbid();
+        }
+
+        [HttpPost("form-data/list")]
+        public async Task<IActionResult> UploadFileListFormData([FromBody] UploadFileListFormDataRequest request)
+        {
+            return Forbid();
+        }
     }
 }

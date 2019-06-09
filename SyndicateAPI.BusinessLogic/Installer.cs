@@ -10,6 +10,7 @@ namespace SyndicateAPI.BusinessLogic
         {
             container
                 .AddScoped<IUserService, UserService>()
+                .AddScoped<IUserSessionService, UserSessionService>()
                 .AddScoped<IUserTempService, UserTempService>()
                 .AddScoped<IAdminUserService, AdminUserService>()
                 .AddScoped<IPersonService, PersonService>()

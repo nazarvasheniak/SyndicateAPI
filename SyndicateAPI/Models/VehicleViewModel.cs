@@ -19,6 +19,7 @@ namespace SyndicateAPI.Models
         public VehicleBodyViewModel Body { get; set; }
         public UserViewModel Owner { get; set; }
         public FileViewModel ConfirmationPhoto { get; set; }
+        public string ConfirmationText { get; set; }
         public VehicleApproveStatus ApproveStatus { get; set; }
 
         public VehicleViewModel() { }
@@ -38,6 +39,7 @@ namespace SyndicateAPI.Models
                 Body = new VehicleBodyViewModel(vehicle.Body);
                 Owner = new UserViewModel(vehicle.Owner);
                 ConfirmationPhoto = new FileViewModel(vehicle.ConfirmationPhoto);
+                ConfirmationText = vehicle.ConfirmationText;
                 ApproveStatus = vehicle.ApproveStatus;
             }
         }
@@ -58,6 +60,7 @@ namespace SyndicateAPI.Models
                 Owner = new UserViewModel(vehicle.Owner);
                 ConfirmationPhoto = new FileViewModel(vehicle.ConfirmationPhoto);
                 ApproveStatus = vehicle.ApproveStatus;
+                ConfirmationText = vehicle.ConfirmationText;
                 Photos = vehiclePhotos.Select(x => new FileViewModel(x.Photo)).ToList();
             }
         }
