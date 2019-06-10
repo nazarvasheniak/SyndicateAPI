@@ -183,6 +183,7 @@ namespace SyndicateAPI.Controllers
                 Body = vehicleBody,
                 Owner = user,
                 ConfirmationPhoto = confirmationPhoto,
+                ConfirmationText = request.ConfirmationText,
                 ApproveStatus = VehicleApproveStatus.NotApproved
             };
 
@@ -360,6 +361,9 @@ namespace SyndicateAPI.Controllers
 
             if (request.Price != vehicle.Price)
                 vehicle.Price = request.Price;
+
+            if (request.ConfirmationText != vehicle.ConfirmationText)
+                vehicle.ConfirmationText = request.ConfirmationText;
 
             vehicle.ApproveStatus = VehicleApproveStatus.NotApproved;
 
