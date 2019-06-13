@@ -160,14 +160,24 @@ namespace SyndicateAPI.Controllers
                 Points = new List<MapPointViewModel>(),
                 Partners = new List<PartnerViewModel>(),
                 Users = new List<UserViewModel>(),
+                GroupUsers = new List<UserViewModel>(),
                 Posts = new List<PostViewModel>(),
                 GroupPosts = new List<GroupPostViewModel>()
             };
 
-            var users = UserService.GetAll().Where(x => x.ID != user.ID).ToList();
+            var users = UserService.GetAll().Where(x => x.ID != user.ID && x.IsOnline).ToList();
             foreach (var u in users)
                 if (IsInRadius(u, request.CenterLatitude, request.CenterLongitude, request.Radius))
                     result.Users.Add(new UserViewModel(u));
+
+            var groupMember = GroupMemberService.GetAll().FirstOrDefault(x => x.User == user && x.IsActive);
+            if (groupMember != null)
+            {
+                var groupUsers = GroupMemberService.GetAll().Where(x => x.Group == groupMember.Group && x.IsActive);
+                foreach (var u in groupUsers)
+                    if (IsInRadius(u.User, request.CenterLatitude, request.CenterLongitude, request.Radius))
+                        result.GroupUsers.Add(new UserViewModel(u.User));
+            }
 
             var points = MapPointService.GetAll().ToList();
             foreach (var point in points)
@@ -186,9 +196,6 @@ namespace SyndicateAPI.Controllers
             var groupSubscriptions = GroupSubscriptionService.GetAll()
                 .Where(x => x.User == user && x.IsActive)
                 .ToList();
-
-            var groupMember = GroupMemberService.GetAll()
-                .FirstOrDefault(x => x.User == user && x.IsActive);
 
             foreach (var subscription in subscriptions)
             {

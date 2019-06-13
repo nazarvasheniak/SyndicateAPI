@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -41,6 +42,48 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             CityService = cityService;
             EmailService = emailService;
             StartRewardService = startRewardService;
+        }
+
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserById(long id)
+        {
+            var admin = AdminUserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            if (admin == null)
+                return Forbid();
+
+            var user = UserService.Get(id);
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            return Ok(new DataResponse<UserViewModel>
+            {
+                Data = new UserViewModel(user)
+            });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var user = AdminUserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            if (user == null)
+                return Forbid();
+
+            var users = UserService.GetAll().Select(x => new UserViewModel(x)).ToList();
+
+            return Ok(new DataResponse<List<UserViewModel>>
+            {
+                Data = users
+            });
         }
 
         [HttpPost("reg")]
@@ -226,6 +269,19 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             return Ok(new AdminAuthorizationResponse
             {
                 Token = authToken
+            });
+        }
+
+        [HttpGet("admin/me")]
+        [Authorize]
+        public async Task<IActionResult> GetMeAdmin()
+        {
+            var user = AdminUserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            return Ok(new DataResponse<AdminUserViewModel>
+            {
+                Data = new AdminUserViewModel(user)
             });
         }
 
