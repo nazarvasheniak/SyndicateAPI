@@ -16,7 +16,7 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Post, "id_post");
             References(e => e.Author, "id_author");
 
-            Map(u => u.Text, "comment_text");
+            Map(u => u.Text, "comment_text").Length(20000);
             Map(u => u.Time, "comment_time");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }

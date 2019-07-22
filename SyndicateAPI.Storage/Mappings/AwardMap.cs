@@ -14,7 +14,7 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Rewarder, "id_rewarder");
             References(e => e.Reward, "id_reward");
 
-            Map(u => u.Comment, "comment");
+            Map(u => u.Comment, "comment").Length(20000);
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

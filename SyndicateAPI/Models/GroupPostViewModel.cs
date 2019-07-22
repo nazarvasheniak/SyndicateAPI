@@ -31,5 +31,12 @@ namespace SyndicateAPI.Models
             Post = new PostViewModel(groupPost.Post);
             Group = new GroupViewModel(groupPost.Group, new List<GroupPostViewModel>(), subscribers, members, role, joinRequests);
         }
+
+        public GroupPostViewModel(GroupPost groupPost, IEnumerable<UserViewModel> subscribers, IEnumerable<GroupMemberViewModel> members, RoleInGroup role, IEnumerable<GroupJoinRequestViewModel> joinRequests, IEnumerable<GroupPostViewModel> posts)
+        {
+            ID = groupPost.ID;
+            Post = new PostViewModel(groupPost.Post);
+            Group = new GroupViewModel(groupPost.Group, posts, subscribers, members, role, joinRequests);
+        }
     }
 }

@@ -10,6 +10,7 @@ using SyndicateAPI.Domain.Models;
 using SyndicateAPI.Models;
 using SyndicateAPI.Models.Request;
 using SyndicateAPI.Models.Response;
+using SyndicateAPI.Utils.Extenstions;
 using SyndicateAPI.WebSocketManager;
 
 namespace SyndicateAPI.Controllers
@@ -474,6 +475,63 @@ namespace SyndicateAPI.Controllers
             {
                 Data = new PostViewModel(post)
             });
+        }
+
+        private GroupViewModel GroupToViewModel(Group group, User user)
+        {
+            var posts = GroupPostService.GetAll()
+                .Where(x => x.Group == group && x.Post.IsPublished)
+                .Select(x => new GroupPostViewModel(x))
+                .ToList();
+
+            RoleInGroup role;
+            if (GroupCreatorService.GetAll().FirstOrDefault(x => x.User == user &&
+                x.Group == group) != null)
+                role = RoleInGroup.Creator;
+            else if (GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                x.Group == group) != null)
+            {
+                var moder = GroupModeratorService.GetAll().FirstOrDefault(x => x.User == user &&
+                    x.Group == group);
+
+                switch (moder.Level)
+                {
+                    case GroupModeratorLevel.Level1:
+                        role = RoleInGroup.ModeratorLevel1;
+                        break;
+                    case GroupModeratorLevel.Level2:
+                        role = RoleInGroup.ModeratorLevel2;
+                        break;
+                    case GroupModeratorLevel.Level3:
+                        role = RoleInGroup.ModeratorLevel3;
+                        break;
+                    default:
+                        role = RoleInGroup.Member;
+                        break;
+                }
+            }
+            else
+                role = RoleInGroup.Member;
+
+            var subscribers = GroupSubscriptionService.GetAll()
+                .Where(x => x.Group == group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
+                .Select(x => new UserViewModel(x.User))
+                .ToList();
+
+            var members = GroupMemberService.GetAll()
+                .Where(x => x.Group == group && x.IsActive)
+                .OrderByDescending(x => x.User.PointsCount)
+                .Select(x => MemberToViewModel(x))
+                .ToList();
+
+            var joinRequests = GroupJoinRequestService.GetAll()
+                .Where(x => x.Group == group && x.Status == GroupJoinRequestStatus.New)
+                .OrderByDescending(x => x.User.PointsCount)
+                .Select(x => new GroupJoinRequestViewModel(x))
+                .ToList();
+
+            return new GroupViewModel(group, posts, subscribers, members, role, joinRequests);
         }
 
         [HttpPost("group")]

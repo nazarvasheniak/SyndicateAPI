@@ -17,7 +17,7 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.User, "id_user");
 
             Map(u => u.Name, "name");
-            Map(u => u.Message, "message");
+            Map(u => u.Message, "message").Length(20000);
             Map(u => u.Latitude, "latitude");
             Map(u => u.Longitude, "longitude");
             Map(u => u.MapPointType, "map_point_type").CustomType<MapPointType>();

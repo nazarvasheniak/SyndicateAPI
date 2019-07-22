@@ -18,7 +18,7 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Sender, "id_sender");
 
             Map(u => u.Type, "message_type").CustomType<DialogMessageType>();
-            Map(u => u.Content, "message_content");
+            Map(u => u.Content, "message_content").Length(20000);
             Map(u => u.Time, "message_time");
             Map(u => u.IsReaded, "is_readed");
             Map(u => u.Deleted, "deleted").Not.Nullable();

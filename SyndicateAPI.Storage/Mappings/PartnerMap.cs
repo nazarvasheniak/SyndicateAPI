@@ -19,7 +19,7 @@ namespace SyndicateAPI.Storage.Mappings
             References(e => e.Creator, "id_creator");
 
             Map(u => u.Name, "name");
-            Map(u => u.Description, "description");
+            Map(u => u.Description, "description").Length(20000);
             Map(u => u.MapPointType, "type").CustomType<MapPointType>();
             Map(u => u.Latitude, "latitude");
             Map(u => u.Longitude, "longitude");
