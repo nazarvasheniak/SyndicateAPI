@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,21 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             StartRewardService = startRewardService;
         }
 
+        private static string RandomString(int length)
+        {
+            const string pool = "abcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random((int)DateTime.Now.Ticks);
+            var builder = new StringBuilder();
+
+            for (var i = 0; i < length; i++)
+            {
+                var c = pool[random.Next(0, pool.Length)];
+                builder.Append(c);
+            }
+
+            return builder.ToString();
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetUserById(long id)
@@ -84,6 +100,37 @@ namespace Gold.IO.Exchange.API.EthereumRPC.Controllers
             {
                 Data = users
             });
+        }
+
+        [HttpPost("recovery")]
+        public async Task<IActionResult> Recovery([FromBody] RecoveryRequest request)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x =>
+                    x.Login == request.Username ||
+                    x.Person.Email == request.Username);
+
+            if (user == null)
+                return NotFound(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Пользователь не найден"
+                });
+
+            user.Password = RandomString(8);
+
+            var message = await EmailService.SendPassword(user.Login, user.Password);
+            if (!message)
+            {
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Ошибка отправки письма"
+                });
+            }
+
+            UserService.Update(user);
+            return Ok(new ResponseModel());
         }
 
         [HttpPost("reg")]

@@ -6,6 +6,18 @@ namespace SyndicateAPI.BusinessLogic.Services
 {
     public class EmailService : IEmailService
     {
+        public async Task<bool> SendPassword(string to, string password)
+        {
+            var message = new SendMailModel
+            {
+                MailTo = to,
+                Subject = "[Syndicate] Восстановление аккаунта",
+                Message = $"Ваш новый пароль: {password}"
+            };
+
+            return await SMTPHelper.SendMail(message);
+        }
+
         public async Task<bool> SendActivationMessage(string to, int code)
         {
             var message = new SendMailModel
